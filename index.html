@@ -1,465 +1,1040 @@
 <!DOCTYPE html>
 <html lang="fr" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X-Easy | Solutions intelligentes. Opportunités globales.</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CVPro-facile X — International Resume Builder & ATS Pro</title>
+  <meta name="description" content="Créez votre CV professionnel en quelques minutes. Templates premium, export PDF, personnalisation complète, optimisation ATS." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.15/vue.global.prod.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    /* =========================================
+       VARIABLES & RESET
+       ========================================= */
+    :root {
+      --bg-body: #f8fafc;
+      --bg-panel: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --premium: #8b5cf6;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      --radius: 8px;
+    }
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    [data-theme="dark"] {
+      --bg-body: #0f172a;
+      --bg-panel: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background-color: var(--bg-body); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: background-color 0.3s; }
+    button { cursor: pointer; font-family: inherit; border: none; background: none; }
+    input, textarea, select { font-family: inherit; width: 100%; transition: border-color 0.2s; }
     
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    /* =========================================
+       LAYOUT (APP)
+       ========================================= */
+    .app-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 24px; background-color: var(--bg-panel); border-bottom: 1px solid var(--border-color); z-index: 10; box-shadow: var(--shadow-sm); }
+    .logo { font-size: 1.25rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; letter-spacing: -0.5px; }
+    .logo i { color: var(--primary); font-size: 1.5rem; }
+    .logo .brand-x { color: var(--premium); }
+    .header-actions { display: flex; gap: 12px; align-items: center; }
+    
+    .btn { padding: 8px 16px; border-radius: var(--radius); font-weight: 600; font-size: 0.9rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; border: 1px solid transparent; }
+    .btn-primary { background-color: var(--primary); color: white; }
+    .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+    .btn-premium { background: linear-gradient(135deg, var(--premium), #c084fc); color: white; border: none; }
+    .btn-premium:hover { box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
+    .btn-outline { border-color: var(--border-color); color: var(--text-main); background: var(--bg-panel); }
+    .btn-outline:hover { background-color: var(--bg-body); border-color: var(--text-muted); }
+    .btn-paypal { background-color: #ffc439; color: #000; font-weight: 600; border: 1px solid #eab308; }
+    .btn-paypal:hover { background-color: #fbbf24; }
+    .btn-icon { width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); border-radius: var(--radius); color: var(--text-main); }
+    .btn-icon:hover { background-color: var(--bg-body); }
+    
+    .main-container { display: flex; flex: 1; overflow: hidden; }
+    .sidebar { width: 420px; background-color: var(--bg-panel); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow-y: auto; }
+    
+    .preview-area { flex: 1; background-color: #cbd5e1; display: flex; align-items: flex-start; justify-content: center; overflow: auto; padding: 40px; position: relative; }
+    [data-theme="dark"] .preview-area { background-color: #020617; }
+    
+    /* =========================================
+       ATS & PROGRESS BAR
+       ========================================= */
+    .ats-panel { padding: 15px 20px; background: linear-gradient(to right, rgba(37, 99, 235, 0.05), rgba(16, 185, 129, 0.05)); border-bottom: 1px solid var(--border-color); }
+    .ats-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .ats-score { font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; gap: 5px; }
+    .ats-score span { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+    .progress-bg { height: 6px; background: var(--border-color); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; transition: width 0.5s ease, background-color 0.3s; }
+    
+    /* =========================================
+       SIDEBAR & FORMS
+       ========================================= */
+    .tabs { display: flex; border-bottom: 1px solid var(--border-color); background: var(--bg-panel); position: sticky; top: 0; z-index: 5; }
+    .tab { flex: 1; padding: 15px; text-align: center; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid transparent; cursor: pointer; transition: 0.2s; }
+    .tab:hover { color: var(--text-main); background: var(--bg-body); }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    
+    .section-wrapper { border-bottom: 1px solid var(--border-color); }
+    .section-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 18px 20px; background: var(--bg-panel); transition: background 0.2s; }
+    .section-header:hover { background: var(--bg-body); }
+    .section-header h3 { font-size: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+    .section-header h3 i { color: var(--primary); width: 20px; text-align: center; }
+    .section-content { padding: 0 20px 20px 20px; }
+    
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+    .form-group input, .form-group textarea, .form-group select { padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--bg-body); color: var(--text-main); font-size: 0.95rem; }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    
+    .photo-upload { display: flex; align-items: center; gap: 15px; padding: 15px; border: 1px dashed var(--border-color); border-radius: var(--radius); background: var(--bg-body); }
+    .photo-preview { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; background: #cbd5e1; border: 2px solid var(--primary); }
+    
+    .item-card { background: var(--bg-body); border: 1px solid var(--border-color); padding: 15px; border-radius: var(--radius); margin-bottom: 15px; position: relative; }
+    .btn-remove { position: absolute; top: 10px; right: 10px; color: var(--danger); font-size: 1.1rem; opacity: 0.5; transition: 0.2s; }
+    .btn-remove:hover { opacity: 1; }
 
-    <style>
-        /* --- CSS VARIABLES & THEME --- */
-        :root {
-            --bg-body: #f4f7f6;
-            --bg-panel: #ffffff;
-            --bg-sidebar: #0f172a;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --text-sidebar: #cbd5e1;
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --accent: #10b981;
-            --border: #e2e8f0;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --radius: 12px;
-            --transition: all 0.3s ease;
-            --font: 'Inter', sans-serif;
-        }
+    /* Grids & Premium Badges */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .premium-badge { font-size: 0.7rem; background: var(--premium); color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; }
 
-        [data-theme="dark"] {
-            --bg-body: #0f172a;
-            --bg-panel: #1e293b;
-            --bg-sidebar: #020617;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-        }
+    /* Templates Selector */
+    .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .template-card { border: 2px solid var(--border-color); border-radius: var(--radius); padding: 10px; text-align: center; cursor: pointer; transition: 0.2s; background: var(--bg-body); }
+    .template-card:hover { border-color: var(--primary); }
+    .template-card.active { border-color: var(--primary); background: rgba(37,99,235,0.05); }
+    .template-card-img { width: 100%; height: 60px; background: #e2e8f0; border-radius: 4px; margin-bottom: 8px; }
+    
+    /* =========================================
+       CV DOCUMENT BASE (A4)
+       ========================================= */
+    .cv-scale-wrapper { transition: transform 0.2s ease; transform-origin: top center; }
+    
+    .cv-document {
+      width: 794px !important; min-height: 1123px; height: auto;
+      background: white; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      position: relative; box-sizing: border-box;
+      font-family: var(--cv-font, 'DM Sans'), sans-serif; color: #333;
+      word-wrap: break-word; overflow-wrap: break-word; display: flex;
+    }
+    
+    .cv-document * { margin: 0; padding: 0; line-height: var(--cv-line-height, 1.5); box-sizing: border-box; }
+    .cv-watermark-overlay { position: absolute; bottom: 15px; right: 15px; font-size: 10px; color: rgba(0,0,0,0.3); font-weight: bold; z-index: 1000; letter-spacing: 1px; }
 
-        /* --- GLOBAL RESETS --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: var(--font); background-color: var(--bg-body); color: var(--text-main); overflow-x: hidden; transition: var(--transition); }
-        a { text-decoration: none; color: inherit; }
-        ul { list-style: none; }
-        button, input, select, textarea { font-family: var(--font); outline: none; }
-        
-        /* --- LAYOUT --- */
-        #app { display: flex; height: 100vh; overflow: hidden; }
-        
-        /* SIDEBAR */
-        .sidebar { width: 260px; background-color: var(--bg-sidebar); color: var(--text-sidebar); display: flex; flex-direction: column; transition: var(--transition); z-index: 10; }
-        .sidebar-brand { padding: 24px; font-size: 24px; font-weight: 700; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
-        .sidebar-brand i { color: var(--primary); }
-        .sidebar-nav { flex: 1; padding: 20px 0; overflow-y: auto; }
-        .nav-item { padding: 12px 24px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: var(--transition); border-left: 3px solid transparent; }
-        .nav-item:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
-        .nav-item.active { background-color: rgba(37, 99, 235, 0.1); border-left-color: var(--primary); color: #fff; }
-        .sidebar-footer { padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.1); }
-        
-        /* MAIN CONTENT */
-        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        
-        /* HEADER */
-        .header { height: 70px; background-color: var(--bg-panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; transition: var(--transition); }
-        .header-title { font-size: 20px; font-weight: 600; }
-        .header-actions { display: flex; align-items: center; gap: 20px; }
-        .btn-icon { background: none; border: none; font-size: 18px; color: var(--text-muted); cursor: pointer; transition: var(--transition); }
-        .btn-icon:hover { color: var(--primary); }
-        .btn-premium { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 10px rgba(217, 119, 6, 0.3); }
-        
-        /* CONTENT AREA */
-        .content-area { flex: 1; padding: 30px; overflow-y: auto; }
-        
-        /* --- COMPONENTS --- */
-        .card { background-color: var(--bg-panel); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); transition: var(--transition); }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-        
-        /* FORMS & INPUTS */
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: var(--text-muted); }
-        .form-control { width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); background-color: var(--bg-body); color: var(--text-main); transition: var(--transition); }
-        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
-        
-        /* BUTTONS */
-        .btn { padding: 12px 24px; border-radius: 8px; font-weight: 500; cursor: pointer; transition: var(--transition); border: none; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
-        .btn-primary { background-color: var(--primary); color: #fff; }
-        .btn-primary:hover { background-color: var(--primary-hover); }
-        .btn-secondary { background-color: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); }
-        
-        /* CV BUILDER SPECIFIC */
-        .cv-builder-layout { display: grid; grid-template-columns: 400px 1fr; gap: 30px; height: calc(100vh - 140px); }
-        .cv-editor { overflow-y: auto; padding-right: 10px; }
-        .cv-preview-container { background-color: #525659; border-radius: var(--radius); padding: 30px; overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; }
-        
-        /* ACTUAL CV PAPER STYLE */
-        .cv-paper { background: #fff; width: 210mm; min-height: 297mm; padding: 40mm 20mm; box-shadow: 0 10px 30px rgba(0,0,0,0.2); color: #000; position: relative; }
-        .cv-header-classic { border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
-        .cv-name { font-size: 32px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
-        .cv-job-title { font-size: 18px; color: #555; margin-top: 5px; }
-        .cv-section-title { font-size: 16px; font-weight: 700; text-transform: uppercase; color: var(--primary); margin: 20px 0 10px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        
-        /* WEB AUDIT SPECIFIC */
-        .audit-hero { text-align: center; padding: 60px 0; }
-        .audit-search { max-width: 600px; margin: 30px auto; display: flex; gap: 10px; }
-        .score-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 8px solid var(--primary); margin: 0 auto; }
-        .score-val { font-size: 32px; font-weight: 700; }
-        
-        /* RESPONSIVE */
-        @media (max-width: 1024px) {
-            .cv-builder-layout { grid-template-columns: 1fr; }
-            .sidebar { width: 80px; }
-            .sidebar-brand span, .nav-item span { display: none; }
-            .nav-item { justify-content: center; padding: 15px; }
-        }
-    </style>
+    /* =========================================
+       UNIFIED DOM LAYOUT FOR ALL TEMPLATES
+       ========================================= */
+    .cv-unified { display: flex; width: 100%; flex: 1; flex-direction: var(--cv-layout-dir, row); }
+    .cv-sidebar { width: 35%; background-color: var(--cv-sidebar-bg, #f8fafc); padding: var(--cv-spacing, 30px); border-right: var(--cv-sidebar-border, 1px solid #e2e8f0); color: var(--cv-sidebar-text, #333); }
+    .cv-main { width: 65%; padding: var(--cv-spacing, 30px); background-color: var(--cv-main-bg, #ffffff); }
+    .cv-full-width { display: flex; flex-direction: column; width: 100%; }
+
+    /* COMMON COMPONENTS */
+    .cv-photo { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+    .cv-photo-fallback { width: 130px; height: 130px; border-radius: 50%; background-color: rgba(0, 0, 0, 0.1); display: flex; align-items: center; justify-content: center; font-size: 46px; font-weight: 700; flex-shrink: 0; letter-spacing: 2px; text-transform: uppercase; }
+    .cv-name { font-size: calc(32px * var(--cv-text-scale, 1)); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--cv-name-color, inherit); }
+    .cv-title { font-size: calc(18px * var(--cv-text-scale, 1)); opacity: 0.9; font-weight: 500; color: var(--cv-title-color, inherit); margin-top: 5px; }
+    .cv-section-title { font-size: calc(16px * var(--cv-text-scale, 1)); font-weight: 700; color: var(--cv-color); text-transform: uppercase; margin: 20px 0 15px 0; padding-bottom: 5px; border-bottom: 2px solid var(--cv-color); letter-spacing: 0.5px; }
+    
+    .contact-item { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: calc(13px * var(--cv-text-scale, 1)); word-break: break-all; }
+    .contact-item i { color: var(--cv-icon-color, var(--cv-color)); width: 16px; text-align: center; }
+    
+    .skills-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .skill-tag { background: var(--cv-tag-bg, #e2e8f0); color: var(--cv-tag-text, #334155); padding: 5px 10px; border-radius: 4px; font-size: calc(12px * var(--cv-text-scale, 1)); font-weight: 600; }
+    
+    .item { margin-bottom: 20px; }
+    .item-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+    .item-title { font-weight: 700; font-size: calc(15px * var(--cv-text-scale, 1)); color: var(--cv-item-title, #1e293b); }
+    .item-date { font-size: calc(12px * var(--cv-text-scale, 1)); color: var(--cv-color); font-weight: 600; flex-shrink: 0; }
+    .item-subtitle { font-size: calc(14px * var(--cv-text-scale, 1)); color: var(--cv-item-sub, #64748b); font-weight: 500; margin-bottom: 5px; font-style: italic; }
+    .item-desc { font-size: calc(13px * var(--cv-text-scale, 1)); color: var(--cv-text-color, #475569); text-align: justify; }
+
+    /* =========================================
+       SPECIFIC TEMPLATES OVERRIDES
+       ========================================= */
+    /* 1. CORPORATE (Existant respecté) */
+    .template-corporate { flex-direction: column; }
+    .template-corporate .cv-header { width: 100%; background-color: var(--cv-color); color: white; padding: 40px; display: flex; align-items: center; gap: 30px; }
+    .template-corporate .cv-photo { border: 4px solid rgba(255,255,255,0.3); }
+    .template-corporate .cv-photo-fallback { border: 4px solid rgba(255,255,255,0.3); color: white; }
+    .template-corporate .cv-icon-color { color: white; }
+
+    /* 2. MINIMAL ELEGANT */
+    .template-minimal { flex-direction: column; --cv-sidebar-bg: #fff; --cv-sidebar-border: none; --cv-tag-bg: transparent; --cv-tag-text: #333; }
+    .template-minimal .cv-header { text-align: center; padding: 40px; border-bottom: 1px solid #eaeaea; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+    .template-minimal .cv-name { color: var(--cv-color); }
+    .template-minimal .cv-section-title { border-bottom: 1px solid #eaeaea; color: #333; margin-top: 30px; }
+    .template-minimal .skill-tag { border: 1px solid #eaeaea; }
+
+    /* 3. EXECUTIVE DARK */
+    .template-executive { --cv-sidebar-bg: #1a1a1a; --cv-sidebar-text: #eaeaea; --cv-icon-color: var(--cv-color); --cv-sidebar-border: none; }
+    .template-executive .cv-header { display: none; } /* Header is merged into sidebar */
+    .template-executive .exec-sidebar-header { text-align: center; margin-bottom: 30px; }
+    .template-executive .cv-name { color: white; margin-top: 15px; font-size: 24px; }
+    .template-executive .cv-section-title { color: var(--cv-color); border-bottom-color: #333; }
+    .template-executive .cv-sidebar .cv-section-title { color: white; }
+    .template-executive .skill-tag { background: #333; color: #fff; }
+
+    /* 4. USA / CANADA ATS (No Photo, 100% width) */
+    .template-usa, .template-canada { --cv-sidebar-bg: #fff; --cv-sidebar-border: none; flex-direction: column; }
+    .template-usa .cv-sidebar, .template-canada .cv-sidebar, .template-usa .cv-main, .template-canada .cv-main { width: 100%; padding: 0 40px; }
+    .template-usa .cv-header, .template-canada .cv-header { text-align: center; padding: 40px 40px 10px 40px; }
+    .template-usa .cv-name, .template-canada .cv-name { font-size: 28px; letter-spacing: 0; }
+    .template-usa .contact-row { display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; font-size: 12px; margin-top: 10px; }
+    .template-usa .cv-section-title { border-bottom: 1px solid #000; color: #000; margin-top: 15px; }
+    .template-usa .cv-unified { flex-direction: column; }
+
+    /* =========================================
+       MODALS & TOASTS
+       ========================================= */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
+    .modal-content { background: var(--bg-panel); width: 100%; max-width: 500px; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+    
+    .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+    .toast { padding: 15px 20px; border-radius: 8px; color: white; display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow-md); animation: slideIn 0.3s ease; }
+    .toast.success { background-color: var(--success); }
+    .toast.error { background-color: var(--danger); }
+    .toast.info { background-color: var(--primary); }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-body); }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
 </head>
 <body>
-    <div id="app" v-cloak>
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <i class="fas fa-cube"></i>
-                <span>X-Easy</span>
-            </div>
-            <ul class="sidebar-nav">
-                <li class="nav-item" :class="{ active: currentView === 'dashboard' }" @click="currentView = 'dashboard'">
-                    <i class="fas fa-home"></i> <span>{{ t('nav_dashboard') }}</span>
-                </li>
-                <li class="nav-item" :class="{ active: currentView === 'cvpro' }" @click="currentView = 'cvpro'">
-                    <i class="fas fa-file-alt"></i> <span>CV Pro</span>
-                </li>
-                <li class="nav-item" :class="{ active: currentView === 'audit' }" @click="currentView = 'audit'">
-                    <i class="fas fa-globe"></i> <span>Web Audit Pro</span>
-                </li>
-                <li class="nav-item" :class="{ active: currentView === 'trade' }" @click="currentView = 'trade'">
-                    <i class="fas fa-ship"></i> <span>Global Trade</span>
-                </li>
-            </ul>
-            <div class="sidebar-footer">
-                <button class="btn btn-secondary" style="width: 100%; justify-content: center;">
-                    <i class="fas fa-cog"></i> <span class="hide-mobile">{{ t('settings') }}</span>
-                </button>
-            </div>
-        </aside>
+  <div id="app" style="display: contents;">
+    <header class="app-header">
+      <div class="logo">
+        <i class="fa-solid fa-file-invoice"></i> CVPro-facile <span class="brand-x">X</span>
+      </div>
+      <div class="header-actions">
+        <select v-model="lang" class="form-group" style="margin:0; padding: 6px; width: auto;" @change="updateRegion">
+          <option value="fr">🇫🇷 FR</option>
+          <option value="en">🇬🇧 EN</option>
+        </select>
+        <select v-model="cvRegion" class="form-group" style="margin:0; padding: 6px; width: auto;" @change="applyRegionRules">
+          <option value="EU">{{ t('region_eu') }}</option>
+          <option value="NA">{{ t('region_na') }}</option>
+        </select>
+        <a href="https://paypal.me/toglanyaonestorpro" target="_blank" class="btn btn-paypal">
+          <i class="fa-brands fa-paypal"></i> {{ t('support') }}
+        </a>
+        <button class="btn btn-icon" @click="toggleDarkMode" :title="t('theme')">
+          <i class="fa-solid" :class="darkMode ? 'fa-sun' : 'fa-moon'"></i>
+        </button>
+        <button class="btn btn-outline" @click="exportPNG" :disabled="isExporting">
+          <i class="fa-regular fa-image"></i> PNG HD <span class="premium-badge">PRO</span>
+        </button>
+        <button class="btn btn-primary" @click="exportPDF" :disabled="isExporting">
+          <i class="fa-solid" :class="isExporting ? 'fa-circle-notch fa-spin' : 'fa-download'"></i>
+          {{ isExporting ? t('generating') : t('dl_pdf') }}
+        </button>
+      </div>
+    </header>
 
-        <main class="main-content">
-            <header class="header">
-                <div class="header-title">{{ viewTitle }}</div>
-                <div class="header-actions">
-                    <button class="btn-premium"><i class="fas fa-crown"></i> {{ t('upgrade') }}</button>
-                    <button class="btn-icon" @click="toggleTheme"><i :class="theme === 'light' ? 'fas fa-moon' : 'fas fa-sun'"></i></button>
-                    <button class="btn-icon" @click="toggleLang"><i class="fas fa-language"></i> {{ lang.toUpperCase() }}</button>
-                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                        AD
-                    </div>
+    <div class="main-container">
+      <aside class="sidebar">
+        
+        <div class="ats-panel">
+          <div class="ats-header">
+            <span style="font-weight: 600; font-size: 0.9rem;"><i class="fa-solid fa-robot"></i> {{ t('ats_score') }}</span>
+            <div class="ats-score" :style="{color: atsColor}">{{ atsScore }}% <span>/ 100</span></div>
+          </div>
+          <div class="progress-bg">
+            <div class="progress-fill" :style="{width: atsScore + '%', backgroundColor: atsColor}"></div>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; text-align: center;">
+            {{ atsMessage }}
+          </div>
+        </div>
+
+        <div class="tabs">
+          <div class="tab" :class="{active: activeTab === 'content'}" @click="activeTab = 'content'">{{ t('tab_content') }}</div>
+          <div class="tab" :class="{active: activeTab === 'design'}" @click="activeTab = 'design'">{{ t('tab_design') }} <i class="fa-solid fa-crown" style="color:var(--premium); font-size: 10px;"></i></div>
+        </div>
+
+        <div v-show="activeTab === 'content'">
+          
+          <div class="section-wrapper">
+            <div class="section-header" @click="toggleSection('personal')">
+              <h3><i class="fa-solid fa-user"></i> {{ t('sec_info') }}</h3>
+              <i class="fa-solid" :class="openSections.personal ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            </div>
+            <div v-show="openSections.personal" class="section-content">
+              <div class="photo-upload" v-if="design.showPhoto">
+                <img :src="cv.personal.photo || 'https://via.placeholder.com/150'" alt="Photo" class="photo-preview">
+                <div style="flex:1;">
+                  <label>{{ t('profile_pic') }}</label>
+                  <input type="file" accept="image/*" @change="handlePhotoUpload" style="font-size: 0.8rem;">
                 </div>
-            </header>
+              </div>
+              <div class="grid-2" style="margin-top:15px;">
+                <div class="form-group"><label>{{ t('firstname') }}</label><input type="text" v-model="cv.personal.firstname"></div>
+                <div class="form-group"><label>{{ t('lastname') }}</label><input type="text" v-model="cv.personal.lastname"></div>
+              </div>
+              <div class="form-group"><label>{{ t('job_title') }}</label><input type="text" v-model="cv.personal.title"></div>
+              <div class="form-group"><label>{{ t('summary') }}</label><textarea rows="3" v-model="cv.personal.summary"></textarea></div>
+              <div class="grid-2">
+                <div class="form-group"><label>Email</label><input type="email" v-model="cv.personal.email"></div>
+                <div class="form-group"><label>{{ t('phone') }}</label><input type="text" v-model="cv.personal.phone"></div>
+              </div>
+              <div class="form-group"><label>{{ t('address') }}</label><input type="text" v-model="cv.personal.address"></div>
+              
+              <div class="grid-2">
+                <div class="form-group"><label>LinkedIn</label><input type="text" v-model="cv.personal.linkedin" placeholder="linkedin.com/in/..."></div>
+                <div class="form-group"><label>GitHub / Portfolio</label><input type="text" v-model="cv.personal.github" placeholder="github.com/..."></div>
+              </div>
+              <div class="grid-2">
+                <div class="form-group"><label>{{ t('nationality') }}</label><input type="text" v-model="cv.personal.nationality"></div>
+                <div class="form-group"><label>{{ t('license') }}</label><input type="text" v-model="cv.personal.license"></div>
+              </div>
+            </div>
+          </div>
 
-            <div class="content-area">
+          <div class="section-wrapper">
+            <div class="section-header" @click="toggleSection('experience')">
+              <h3><i class="fa-solid fa-briefcase"></i> {{ t('sec_exp') }}</h3>
+              <i class="fa-solid" :class="openSections.experience ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            </div>
+            <div v-show="openSections.experience" class="section-content">
+              <div v-for="(exp, index) in cv.experience" :key="'exp'+index" class="item-card">
+                <button class="btn-remove" @click="cv.experience.splice(index, 1)"><i class="fa-solid fa-xmark"></i></button>
+                <div class="form-group"><label>{{ t('position') }}</label><input type="text" v-model="exp.title"></div>
+                <div class="form-group"><label>{{ t('company') }}</label><input type="text" v-model="exp.company"></div>
+                <div class="grid-2">
+                  <div class="form-group"><label>{{ t('start') }}</label><input type="text" v-model="exp.startDate"></div>
+                  <div class="form-group"><label>{{ t('end') }}</label><input type="text" v-model="exp.endDate"></div>
+                </div>
+                <div class="form-group"><label>Description</label><textarea rows="3" v-model="exp.description"></textarea></div>
+              </div>
+              <button class="btn btn-outline" style="width: 100%; justify-content: center;" @click="addExperience"><i class="fa-solid fa-plus"></i> {{ t('add_exp') }}</button>
+            </div>
+          </div>
+
+          <div class="section-wrapper">
+            <div class="section-header" @click="toggleSection('education')">
+              <h3><i class="fa-solid fa-graduation-cap"></i> {{ t('sec_edu') }}</h3>
+              <i class="fa-solid" :class="openSections.education ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            </div>
+            <div v-show="openSections.education" class="section-content">
+               <div v-for="(edu, index) in cv.education" :key="'edu'+index" class="item-card">
+                <button class="btn-remove" @click="cv.education.splice(index, 1)"><i class="fa-solid fa-xmark"></i></button>
+                <div class="form-group"><label>{{ t('degree') }}</label><input type="text" v-model="edu.degree"></div>
+                <div class="form-group"><label>{{ t('school') }}</label><input type="text" v-model="edu.school"></div>
+                <div class="form-group"><label>{{ t('year') }}</label><input type="text" v-model="edu.year"></div>
+              </div>
+              <button class="btn btn-outline" style="width: 100%; justify-content: center;" @click="addEducation"><i class="fa-solid fa-plus"></i> {{ t('add_edu') }}</button>
+            </div>
+          </div>
+
+          <div class="section-wrapper">
+            <div class="section-header" @click="toggleSection('skills')">
+              <h3><i class="fa-solid fa-star"></i> {{ t('sec_skills') }}</h3>
+              <i class="fa-solid" :class="openSections.skills ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            </div>
+            <div v-show="openSections.skills" class="section-content">
+              <div class="form-group">
+                <label>{{ t('skills_desc') }}</label>
+                <textarea rows="2" v-model="cv.skillsString" placeholder="HTML, CSS, Vue.js..."></textarea>
+              </div>
+              <div class="form-group">
+                <label>{{ t('lang_desc') }}</label>
+                <textarea rows="2" v-model="cv.languagesString" placeholder="Français, English..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-wrapper">
+            <div class="section-header" @click="toggleSection('extra')">
+              <h3><i class="fa-solid fa-award"></i> {{ t('sec_extra') }} <span class="premium-badge">NEW</span></h3>
+              <i class="fa-solid" :class="openSections.extra ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+            </div>
+            <div v-show="openSections.extra" class="section-content">
+              <h4 style="margin: 10px 0; font-size: 0.9rem;">{{ t('certifs') }}</h4>
+              <div v-for="(cert, index) in cv.certifications" :key="'cert'+index" class="item-card" style="padding: 10px;">
+                <button class="btn-remove" @click="cv.certifications.splice(index, 1)" style="top:5px; right:5px;"><i class="fa-solid fa-xmark"></i></button>
+                <input type="text" v-model="cert.name" :placeholder="t('cert_name')" style="margin-bottom:5px;">
+                <div class="grid-2">
+                  <input type="text" v-model="cert.issuer" :placeholder="t('cert_issuer')">
+                  <input type="text" v-model="cert.year" :placeholder="t('year')">
+                </div>
+              </div>
+              <button class="btn btn-outline" style="width: 100%; justify-content: center; margin-bottom: 15px; font-size: 0.8rem;" @click="addCertification"><i class="fa-solid fa-plus"></i> {{ t('add_cert') }}</button>
+              
+              <h4 style="margin: 10px 0; font-size: 0.9rem;">{{ t('projects') }}</h4>
+              <div v-for="(proj, index) in cv.projects" :key="'proj'+index" class="item-card" style="padding: 10px;">
+                <button class="btn-remove" @click="cv.projects.splice(index, 1)" style="top:5px; right:5px;"><i class="fa-solid fa-xmark"></i></button>
+                <input type="text" v-model="proj.name" :placeholder="t('proj_name')" style="margin-bottom:5px;">
+                <input type="text" v-model="proj.link" placeholder="Lien URL (optionnel)" style="margin-bottom:5px;">
+                <textarea rows="2" v-model="proj.desc" :placeholder="t('proj_desc')"></textarea>
+              </div>
+              <button class="btn btn-outline" style="width: 100%; justify-content: center; font-size: 0.8rem;" @click="addProject"><i class="fa-solid fa-plus"></i> {{ t('add_proj') }}</button>
+            </div>
+          </div>
+
+        </div>
+
+        <div v-show="activeTab === 'design'" style="padding: 20px;">
+          
+          <div class="form-group">
+            <label>{{ t('templates') }}</label>
+            <div class="template-grid">
+              <div class="template-card" :class="{active: design.template === 'corporate'}" @click="design.template = 'corporate'">
+                <div class="template-card-img" style="background: linear-gradient(to right, #3b82f6 30%, #fff 30%);"></div>
+                <span style="font-size: 0.8rem; font-weight:600;">Corporate</span>
+              </div>
+              <div class="template-card" :class="{active: design.template === 'minimal'}" @click="design.template = 'minimal'">
+                <div class="template-card-img" style="background: #fff; border: 1px solid #ccc;"></div>
+                <span style="font-size: 0.8rem; font-weight:600;">Minimal</span>
+              </div>
+              <div class="template-card" :class="{active: design.template === 'executive'}" @click="design.template = 'executive'">
+                <div class="template-card-img" style="background: linear-gradient(to right, #1a1a1a 30%, #fff 30%);"></div>
+                <span style="font-size: 0.8rem; font-weight:600;">Executive <span class="premium-badge" style="padding:1px 3px;">PRO</span></span>
+              </div>
+              <div class="template-card" :class="{active: design.template === 'usa'}" @click="design.template = 'usa'; design.showPhoto = false;">
+                <div class="template-card-img" style="background: #fff; border-top: 5px solid #000;"></div>
+                <span style="font-size: 0.8rem; font-weight:600;">US/Canada ATS</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 25px;">
+            <label>{{ t('color') }}</label>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
+              <button v-for="color in colorPalette" :key="color" 
+                      @click="design.color = color"
+                      :style="{ backgroundColor: color }"
+                      style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 1px var(--border-color);"
+                      :class="{ 'active-color': design.color === color }">
+              </button>
+              <input type="color" v-model="design.color" style="width: 30px; height: 30px; padding: 0; border: none; border-radius: 50%;">
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-top: 20px;">
+            <div class="form-group">
+              <label>{{ t('font') }}</label>
+              <select v-model="design.font">
+                <option value="'DM Sans', sans-serif">DM Sans (Moderne)</option>
+                <option value="'DM Serif Display', serif">DM Serif (Élégant)</option>
+                <option value="'JetBrains Mono', monospace">JetBrains (Tech)</option>
+                <option value="'Playfair Display', serif">Playfair (Premium)</option>
+                <option value="Arial, sans-serif">Arial (ATS Safe)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>{{ t('text_size') }}</label>
+              <select v-model="design.textSize">
+                <option value="0.9">Petit</option>
+                <option value="1">Normal</option>
+                <option value="1.1">Grand</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label>{{ t('layout_dir') }}</label>
+              <select v-model="design.layoutDir" :disabled="['usa', 'minimal'].includes(design.template)">
+                <option value="row">Sidebar Gauche</option>
+                <option value="row-reverse">Sidebar Droite</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>{{ t('spacing') }}</label>
+              <select v-model="design.spacing">
+                <option value="20px">Compact</option>
+                <option value="30px">Normal</option>
+                <option value="40px">Aéré</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 10px; background: var(--bg-body); border-radius: var(--radius);">
+            <span style="font-size: 0.85rem; font-weight: 600;">Afficher Photo (Interdit US/CA)</span>
+            <input type="checkbox" v-model="design.showPhoto">
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 10px; background: var(--bg-body); border-radius: var(--radius);">
+            <span style="font-size: 0.85rem; font-weight: 600;">Retirer Watermark <span class="premium-badge">PRO</span></span>
+            <input type="checkbox" v-model="design.removeWatermark">
+          </div>
+
+          <div class="form-group" style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+            <div class="grid-2">
+              <button class="btn btn-outline" style="justify-content: center; font-size:0.8rem;" @click="$refs.importFile.click()">
+                <i class="fa-solid fa-file-import"></i> Import
+              </button>
+              <input type="file" ref="importFile" @change="importJSON" style="display: none;" accept=".json">
+
+              <button class="btn btn-outline" style="justify-content: center; font-size:0.8rem;" @click="exportJSON">
+                <i class="fa-solid fa-file-export"></i> Sauver
+              </button>
+            </div>
+            <button class="btn btn-outline" style="width: 100%; justify-content: center; color: var(--danger); margin-top: 10px; font-size:0.8rem;" @click="confirmReset">
+              <i class="fa-solid fa-trash"></i> {{ t('reset') }}
+            </button>
+          </div>
+
+        </div>
+      </aside>
+
+      <main class="preview-area">
+        <div class="cv-scale-wrapper" :style="{ transform: `scale(${previewScale})` }">
+          
+          <div id="cv-preview" class="cv-document" 
+               :class="'template-' + design.template" 
+               :style="{ 
+                 '--cv-color': design.color, 
+                 '--cv-font': design.font,
+                 '--cv-layout-dir': design.layoutDir,
+                 '--cv-spacing': design.spacing,
+                 '--cv-text-scale': design.textSize,
+                 '--cv-line-height': design.spacing === '20px' ? '1.3' : '1.5'
+               }">
+            
+            <div v-if="!design.removeWatermark" class="cv-watermark-overlay">Généré par CVPro-facile X</div>
+
+            <div v-if="['corporate', 'minimal', 'executive'].includes(design.template)" style="display: contents;">
+              
+              <div class="cv-header">
+                <img v-if="design.showPhoto && cv.personal.photo" :src="cv.personal.photo" alt="Profile" class="cv-photo">
+                <div v-else-if="design.showPhoto" class="cv-photo-fallback">{{ initials }}</div>
+
+                <div class="cv-header-content" style="flex: 1;">
+                  <div class="cv-name">{{ cv.personal.firstname }} {{ cv.personal.lastname }}</div>
+                  <div class="cv-title">{{ cv.personal.title }}</div>
+                </div>
+              </div>
+              
+              <div class="cv-unified">
+                <div class="cv-sidebar">
+                  <div v-if="design.template === 'executive'" class="exec-sidebar-header">
+                     <img v-if="design.showPhoto && cv.personal.photo" :src="cv.personal.photo" alt="Profile" class="cv-photo" style="width:100px; height:100px; margin: 0 auto;">
+                     <div v-else-if="design.showPhoto" class="cv-photo-fallback" style="width:100px; height:100px; margin: 0 auto; font-size:32px;">{{ initials }}</div>
+                     <div class="cv-name">{{ cv.personal.firstname }} <br> {{ cv.personal.lastname }}</div>
+                     <div class="cv-title" style="color:#aaa;">{{ cv.personal.title }}</div>
+                  </div>
+
+                  <div class="cv-section-title">{{ t('contact') }}</div>
+                  <div class="contact-item" v-if="cv.personal.phone"><i class="fa-solid fa-phone"></i> {{ cv.personal.phone }}</div>
+                  <div class="contact-item" v-if="cv.personal.email"><i class="fa-solid fa-envelope"></i> {{ cv.personal.email }}</div>
+                  <div class="contact-item" v-if="cv.personal.address"><i class="fa-solid fa-location-dot"></i> {{ cv.personal.address }}</div>
+                  <div class="contact-item" v-if="cv.personal.linkedin"><i class="fa-brands fa-linkedin"></i> {{ cv.personal.linkedin }}</div>
+                  <div class="contact-item" v-if="cv.personal.github"><i class="fa-brands fa-github"></i> {{ cv.personal.github }}</div>
+                  
+                  <div style="margin-top: 15px;" v-if="cv.personal.nationality || cv.personal.license">
+                    <div class="contact-item" v-if="cv.personal.nationality"><i class="fa-solid fa-earth-americas"></i> {{ cv.personal.nationality }}</div>
+                    <div class="contact-item" v-if="cv.personal.license"><i class="fa-solid fa-car"></i> {{ cv.personal.license }}</div>
+                  </div>
+
+                  <div style="margin-top: 30px;" v-if="parsedSkills.length">
+                    <div class="cv-section-title">{{ t('sec_skills') }}</div>
+                    <div class="skills-list">
+                      <span v-for="skill in parsedSkills" :key="skill" class="skill-tag">{{ skill }}</span>
+                    </div>
+                  </div>
+
+                  <div style="margin-top: 30px;" v-if="parsedLanguages.length">
+                    <div class="cv-section-title">{{ t('sec_lang') }}</div>
+                    <div class="skills-list">
+                      <span v-for="lang in parsedLanguages" :key="lang" class="skill-tag" style="background: transparent; border: 1px solid var(--cv-tag-text, #cbd5e1);">{{ lang }}</span>
+                    </div>
+                  </div>
+
+                </div>
                 
-                <div v-if="currentView === 'dashboard'" class="fade-in">
-                    <h2 style="margin-bottom: 24px;">{{ t('welcome') }}</h2>
-                    <div class="grid-3">
-                        <div class="card" @click="currentView = 'cvpro'" style="cursor:pointer;">
-                            <div style="font-size: 32px; color: var(--primary); margin-bottom: 15px;"><i class="fas fa-file-pdf"></i></div>
-                            <h3>X-Easy CV Pro</h3>
-                            <p style="color: var(--text-muted); margin-top: 10px; font-size: 14px;">{{ t('desc_cv') }}</p>
-                        </div>
-                        <div class="card" @click="currentView = 'audit'" style="cursor:pointer;">
-                            <div style="font-size: 32px; color: var(--accent); margin-bottom: 15px;"><i class="fas fa-chart-line"></i></div>
-                            <h3>Web Audit Pro</h3>
-                            <p style="color: var(--text-muted); margin-top: 10px; font-size: 14px;">{{ t('desc_audit') }}</p>
-                        </div>
-                        <div class="card" @click="currentView = 'trade'" style="cursor:pointer;">
-                            <div style="font-size: 32px; color: #f59e0b; margin-bottom: 15px;"><i class="fas fa-boxes"></i></div>
-                            <h3>Global Trade</h3>
-                            <p style="color: var(--text-muted); margin-top: 10px; font-size: 14px;">{{ t('desc_trade') }}</p>
-                        </div>
+                <div class="cv-main">
+                  
+                  <div v-if="cv.personal.summary">
+                    <div class="cv-section-title">{{ t('sec_profile') }}</div>
+                    <p class="item-desc" style="margin-bottom: 25px;">{{ cv.personal.summary }}</p>
+                  </div>
+
+                  <div v-if="cv.experience.length > 0">
+                    <div class="cv-section-title">{{ t('sec_exp') }}</div>
+                    <div v-for="exp in cv.experience" :key="exp.title + exp.company" class="item">
+                      <div class="item-header">
+                        <span class="item-title">{{ exp.title }}</span>
+                        <span class="item-date">{{ exp.startDate }} - {{ exp.endDate }}</span>
+                      </div>
+                      <div class="item-subtitle">{{ exp.company }}</div>
+                      <p class="item-desc">{{ exp.description }}</p>
                     </div>
+                  </div>
+
+                  <div v-if="cv.education.length > 0">
+                    <div class="cv-section-title">{{ t('sec_edu') }}</div>
+                    <div v-for="edu in cv.education" :key="edu.degree" class="item">
+                      <div class="item-header">
+                        <span class="item-title">{{ edu.degree }}</span>
+                        <span class="item-date">{{ edu.year }}</span>
+                      </div>
+                      <div class="item-subtitle">{{ edu.school }}</div>
+                    </div>
+                  </div>
+
+                  <div v-if="cv.projects && cv.projects.length > 0">
+                    <div class="cv-section-title">{{ t('projects') }}</div>
+                    <div v-for="proj in cv.projects" :key="proj.name" class="item">
+                      <div class="item-header">
+                        <span class="item-title">{{ proj.name }}</span>
+                        <span class="item-date" v-if="proj.link" style="font-weight:normal; font-size:10px;">{{ proj.link }}</span>
+                      </div>
+                      <p class="item-desc">{{ proj.desc }}</p>
+                    </div>
+                  </div>
+
+                  <div v-if="cv.certifications && cv.certifications.length > 0">
+                    <div class="cv-section-title">{{ t('certifs') }}</div>
+                    <div v-for="cert in cv.certifications" :key="cert.name" class="item" style="margin-bottom: 10px;">
+                      <div class="item-header" style="margin:0;">
+                        <span class="item-title" style="font-size:14px;">{{ cert.name }}</span>
+                        <span class="item-date">{{ cert.year }}</span>
+                      </div>
+                      <div class="item-subtitle" style="font-size:12px;">{{ cert.issuer }}</div>
+                    </div>
+                  </div>
+
                 </div>
-
-                <div v-if="currentView === 'cvpro'" class="cv-builder-layout fade-in">
-                    <div class="cv-editor">
-                        <div class="card">
-                            <h3 style="margin-bottom: 20px;"><i class="fas fa-user-edit"></i> {{ t('personal_info') }}</h3>
-                            <div class="form-group">
-                                <label>{{ t('fullname') }}</label>
-                                <input type="text" class="form-control" v-model="cv.name" placeholder="John Doe">
-                            </div>
-                            <div class="form-group">
-                                <label>{{ t('job_title') }}</label>
-                                <input type="text" class="form-control" v-model="cv.title" placeholder="Senior Frontend Developer">
-                            </div>
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input type="email" class="form-control" v-model="cv.email" placeholder="john@example.com">
-                            </div>
-                            <div class="form-group">
-                                <label>{{ t('summary') }}</label>
-                                <textarea class="form-control" v-model="cv.summary" rows="4"></textarea>
-                            </div>
-
-                            <h3 style="margin: 30px 0 20px;"><i class="fas fa-briefcase"></i> {{ t('experience') }}</h3>
-                            <div v-for="(exp, index) in cv.experiences" :key="index" style="border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                                <input type="text" class="form-control" v-model="exp.company" placeholder="Entreprise" style="margin-bottom: 10px;">
-                                <input type="text" class="form-control" v-model="exp.role" placeholder="Rôle" style="margin-bottom: 10px;">
-                                <button class="btn btn-secondary" @click="removeExperience(index)" style="color: #ef4444; border-color: #ef4444;"><i class="fas fa-trash"></i></button>
-                            </div>
-                            <button class="btn btn-secondary" @click="addExperience" style="width: 100%; justify-content: center;"><i class="fas fa-plus"></i> {{ t('add_exp') }}</button>
-                        </div>
-                    </div>
-
-                    <div class="cv-preview-container">
-                        <div style="position: absolute; top: 120px; right: 50px; z-index: 10;">
-                            <button class="btn btn-primary" @click="downloadPDF"><i class="fas fa-download"></i> Export PDF HD</button>
-                        </div>
-                        <div class="cv-paper" id="cv-document">
-                            <div class="cv-header-classic">
-                                <div class="cv-name">{{ cv.name || 'Votre Nom' }}</div>
-                                <div class="cv-job-title">{{ cv.title || 'Titre du poste' }}</div>
-                                <div style="margin-top: 10px; font-size: 12px; color: #666;">
-                                    {{ cv.email }} | LinkedIn | GitHub
-                                </div>
-                            </div>
-                            <div style="font-size: 14px; line-height: 1.6;">
-                                <p>{{ cv.summary }}</p>
-                            </div>
-                            <div class="cv-section-title">Expérience Professionnelle</div>
-                            <div v-for="exp in cv.experiences" :key="exp.company" style="margin-bottom: 15px;">
-                                <div style="font-weight: bold; font-size: 15px;">{{ exp.role || 'Rôle' }}</div>
-                                <div style="color: #555; font-size: 14px; margin-bottom: 5px;">{{ exp.company || 'Entreprise' }}</div>
-                                <ul style="list-style-type: disc; margin-left: 20px; font-size: 13px; color: #444;">
-                                    <li>Développement de solutions SaaS performantes.</li>
-                                    <li>Optimisation de l'architecture et du code.</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div v-if="currentView === 'audit'" class="fade-in">
-                    <div class="card audit-hero" v-if="!auditState.analyzed">
-                        <h1 style="font-size: 32px; margin-bottom: 10px;">{{ t('audit_title') }}</h1>
-                        <p style="color: var(--text-muted);">{{ t('audit_subtitle') }}</p>
-                        
-                        <div class="audit-search">
-                            <input type="text" class="form-control" v-model="auditState.url" placeholder="https://www.entreprise.com" style="padding: 16px; font-size: 16px;">
-                            <button class="btn btn-primary" @click="runAudit" :disabled="auditState.loading" style="padding: 16px 32px; font-size: 16px;">
-                                <span v-if="!auditState.loading"><i class="fas fa-search"></i> Analyser</span>
-                                <span v-else><i class="fas fa-spinner fa-spin"></i> Audit en cours...</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div v-if="auditState.analyzed" class="fade-in">
-                        <button class="btn btn-secondary" @click="auditState.analyzed = false" style="margin-bottom: 20px;"><i class="fas fa-arrow-left"></i> Nouvelle analyse</button>
-                        <div class="grid-3">
-                            <div class="card" style="text-align: center;">
-                                <h3>Score SEO</h3>
-                                <div class="score-circle" style="margin-top: 20px; border-color: var(--accent);">
-                                    <span class="score-val" style="color: var(--accent);">{{ auditState.results.seo }}/100</span>
-                                </div>
-                            </div>
-                            <div class="card" style="text-align: center;">
-                                <h3>Performance</h3>
-                                <div class="score-circle" style="margin-top: 20px; border-color: #f59e0b;">
-                                    <span class="score-val" style="color: #f59e0b;">{{ auditState.results.perf }}/100</span>
-                                </div>
-                            </div>
-                            <div class="card" style="text-align: center;">
-                                <h3>Design & UX</h3>
-                                <div class="score-circle" style="margin-top: 20px; border-color: var(--primary);">
-                                    <span class="score-val" style="color: var(--primary);">{{ auditState.results.ui }}/100</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="card" style="margin-top: 24px;">
-                            <h3 style="margin-bottom: 15px;"><i class="fas fa-briefcase"></i> Opportunités Business (Lead Generation)</h3>
-                            <div style="background-color: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent); padding: 15px; border-radius: var(--radius); color: var(--accent);">
-                                <strong>Recommandation IA :</strong> Ce site manque de balises meta essentielles et n'est pas optimisé mobile. C'est une opportunité de prospection B2B. 
-                                <br><br>
-                                <button class="btn btn-primary"><i class="fas fa-envelope"></i> Générer Email de Prospection</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div v-if="currentView === 'trade'" class="fade-in">
-                    <div class="header-actions" style="margin-bottom: 24px;">
-                        <input type="text" class="form-control" placeholder="Rechercher fournisseurs, machines, produits..." style="max-width: 400px;">
-                        <button class="btn btn-primary"><i class="fas fa-filter"></i> Filtres</button>
-                    </div>
-
-                    <div class="grid-3">
-                        <div class="card" v-for="product in tradeProducts" :key="product.id">
-                            <div style="height: 150px; background-color: var(--border); border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: var(--text-muted);">
-                                <i :class="product.icon"></i>
-                            </div>
-                            <h4 style="font-size: 16px; margin-bottom: 5px;">{{ product.name }}</h4>
-                            <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 15px;">Origine: {{ product.origin }}</p>
-                            
-                            <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 15px;">
-                                <div><strong style="display:block;">Prix estimé</strong> {{ product.price }}</div>
-                                <div style="text-align: right;"><strong style="display:block;">MOQ</strong> {{ product.moq }}</div>
-                            </div>
-                            
-                            <button class="btn btn-secondary" style="width: 100%; justify-content: center; color: var(--primary); border-color: var(--primary);">
-                                <i class="fas fa-calculator"></i> Estimer Rentabilité
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
+              </div>
             </div>
-        </main>
+
+            <div v-if="['usa', 'canada'].includes(design.template)" class="cv-full-width">
+              <div class="cv-header">
+                <div class="cv-name">{{ cv.personal.firstname }} {{ cv.personal.lastname }}</div>
+                <div class="contact-row">
+                  <span v-if="cv.personal.phone">{{ cv.personal.phone }}</span>
+                  <span v-if="cv.personal.phone && cv.personal.email">|</span>
+                  <span v-if="cv.personal.email">{{ cv.personal.email }}</span>
+                  <span v-if="cv.personal.email && cv.personal.address">|</span>
+                  <span v-if="cv.personal.address">{{ cv.personal.address }}</span>
+                  <span v-if="cv.personal.address && cv.personal.linkedin">|</span>
+                  <span v-if="cv.personal.linkedin">{{ cv.personal.linkedin }}</span>
+                </div>
+              </div>
+
+              <div class="cv-main">
+                <div v-if="cv.personal.summary" style="margin-bottom: 20px;">
+                  <p class="item-desc" style="text-align: left;">{{ cv.personal.summary }}</p>
+                </div>
+
+                <div v-if="cv.experience.length > 0">
+                  <div class="cv-section-title">{{ t('sec_exp') }}</div>
+                  <div v-for="exp in cv.experience" :key="exp.title" class="item">
+                    <div class="item-header">
+                      <span class="item-title">{{ exp.title }} <span style="font-weight:normal;">- {{ exp.company }}</span></span>
+                      <span class="item-date" style="color:#333; font-weight:normal;">{{ exp.startDate }} - {{ exp.endDate }}</span>
+                    </div>
+                    <p class="item-desc" style="text-align:left;">• {{ exp.description }}</p>
+                  </div>
+                </div>
+
+                <div v-if="cv.education.length > 0">
+                  <div class="cv-section-title">{{ t('sec_edu') }}</div>
+                  <div v-for="edu in cv.education" :key="edu.degree" class="item" style="margin-bottom: 10px;">
+                    <div class="item-header">
+                      <span class="item-title">{{ edu.school }}</span>
+                      <span class="item-date" style="color:#333; font-weight:normal;">{{ edu.year }}</span>
+                    </div>
+                    <div class="item-subtitle" style="font-style:normal; color:#333;">{{ edu.degree }}</div>
+                  </div>
+                </div>
+
+                <div v-if="parsedSkills.length || parsedLanguages.length">
+                  <div class="cv-section-title">{{ t('sec_skills') }}</div>
+                  <p class="item-desc" style="text-align:left;">
+                    <strong v-if="parsedSkills.length">Technical Skills: </strong> {{ parsedSkills.join(', ') }}<br v-if="parsedSkills.length && parsedLanguages.length">
+                    <strong v-if="parsedLanguages.length">Languages: </strong> {{ parsedLanguages.join(', ') }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </main>
     </div>
 
-    <script>
-        const { createApp, ref, reactive, computed, watch, onMounted } = Vue;
+    <div class="modal-overlay" v-if="showDonateModal" @click.self="showDonateModal = false">
+      <div class="modal-content">
+        <h2><i class="fa-solid fa-rocket" style="color:var(--primary);"></i> Votre CV est prêt !</h2>
+        <p>CVPro-facile X génère des CV optimisés ATS (Applicant Tracking System) gratuitement.<br><br>Si cet outil vous a fait gagner du temps et vous aide à décrocher des entretiens, soutenez son développement !</p>
+        <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+          <button class="btn btn-outline" @click="showDonateModal = false">Plus tard</button>
+          <a href="https://paypal.me/toglanyaonestorpro" target="_blank" class="btn btn-premium" @click="showDonateModal = false">
+            <i class="fa-brands fa-paypal"></i> Soutenir le projet
+          </a>
+        </div>
+      </div>
+    </div>
 
-        // --- i18n Dictionnary ---
-        const translations = {
-            fr: {
-                nav_dashboard: "Tableau de bord",
-                settings: "Paramètres",
-                upgrade: "Passer Premium",
-                welcome: "Bienvenue sur X-Easy",
-                desc_cv: "Générateur de CV international et optimisation ATS.",
-                desc_audit: "Analyse web, prospection B2B et génération de rapports.",
-                desc_trade: "Sourcing international, import et idées business.",
-                personal_info: "Informations Personnelles",
-                fullname: "Nom Complet",
-                job_title: "Titre du poste",
-                summary: "Profil / Résumé",
-                experience: "Expérience Professionnelle",
-                add_exp: "Ajouter une expérience",
-                audit_title: "Audit de Site Web B2B",
-                audit_subtitle: "Analysez n'importe quel site web pour identifier des failles et générer des leads."
-            },
-            en: {
-                nav_dashboard: "Dashboard",
-                settings: "Settings",
-                upgrade: "Upgrade Premium",
-                welcome: "Welcome to X-Easy",
-                desc_cv: "International Resume Builder & ATS optimization.",
-                desc_audit: "Web analysis, B2B prospecting & report generation.",
-                desc_trade: "International sourcing, import & business ideas.",
-                personal_info: "Personal Information",
-                fullname: "Full Name",
-                job_title: "Job Title",
-                summary: "Profile / Summary",
-                experience: "Professional Experience",
-                add_exp: "Add Experience",
-                audit_title: "B2B Website Audit",
-                audit_subtitle: "Analyze any website to identify flaws and generate leads."
-            }
+    <div class="toast-container">
+      <div v-for="toast in toasts" :key="toast.id" class="toast" :class="toast.type">
+        <i class="fa-solid" :class="toast.type === 'success' ? 'fa-check-circle' : (toast.type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-info')"></i>
+        {{ toast.message }}
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
+
+    const translations = {
+      fr: {
+        region_eu: "🇪🇺 Format Europe", region_na: "🇺🇸 Format US/Canada",
+        support: "Soutenez ce projet", theme: "Thème sombre/clair",
+        dl_pdf: "Télécharger PDF", generating: "Génération...",
+        ats_score: "Score ATS (Optimisation)",
+        tab_content: "Contenu", tab_design: "Design",
+        sec_info: "Informations", sec_exp: "Expérience", sec_edu: "Formation",
+        sec_skills: "Compétences & Langues", sec_extra: "Projets & Certifs", sec_profile: "Profil Professionnel",
+        profile_pic: "Photo de profil", firstname: "Prénom", lastname: "Nom", job_title: "Titre du poste",
+        summary: "Résumé / Profil", phone: "Téléphone", address: "Adresse", nationality: "Nationalité", license: "Permis (ex: B)",
+        position: "Poste", company: "Entreprise", start: "Début", end: "Fin", add_exp: "Ajouter une expérience",
+        degree: "Diplôme", school: "École", year: "Année", add_edu: "Ajouter une formation",
+        skills_desc: "Compétences (séparées par une virgule)", lang_desc: "Langues (séparées par une virgule)",
+        certifs: "Certifications", cert_name: "Nom du certificat", cert_issuer: "Organisme", add_cert: "Ajouter certificat",
+        projects: "Projets", proj_name: "Nom du projet", proj_desc: "Description du projet", add_proj: "Ajouter projet",
+        templates: "Modèles (Templates)", color: "Couleur principale", font: "Police de caractères",
+        text_size: "Taille du texte", layout_dir: "Disposition Sidebar", spacing: "Espacement",
+        reset: "Réinitialiser tout", contact: "Contact", sec_lang: "Langues"
+      },
+      en: {
+        region_eu: "🇪🇺 Europe Format", region_na: "🇺🇸 US/Canada Format",
+        support: "Support project", theme: "Dark/Light theme",
+        dl_pdf: "Download PDF", generating: "Generating...",
+        ats_score: "ATS Score (Optimization)",
+        tab_content: "Content", tab_design: "Design",
+        sec_info: "Information", sec_exp: "Experience", sec_edu: "Education",
+        sec_skills: "Skills & Languages", sec_extra: "Projects & Certs", sec_profile: "Professional Profile",
+        profile_pic: "Profile Picture", firstname: "First Name", lastname: "Last Name", job_title: "Job Title",
+        summary: "Summary / Profile", phone: "Phone", address: "Address", nationality: "Nationality", license: "Driving License",
+        position: "Position", company: "Company", start: "Start", end: "End", add_exp: "Add Experience",
+        degree: "Degree", school: "School", year: "Year", add_edu: "Add Education",
+        skills_desc: "Skills (comma separated)", lang_desc: "Languages (comma separated)",
+        certifs: "Certifications", cert_name: "Certificate Name", cert_issuer: "Issuer", add_cert: "Add Certificate",
+        projects: "Projects", proj_name: "Project Name", proj_desc: "Project Description", add_proj: "Add Project",
+        templates: "Templates", color: "Main Color", font: "Typography",
+        text_size: "Text Size", layout_dir: "Sidebar Layout", spacing: "Spacing",
+        reset: "Reset All", contact: "Contact", sec_lang: "Languages"
+      }
+    };
+
+    createApp({
+      setup() {
+        const activeTab = ref('content');
+        const darkMode = ref(false);
+        const previewScale = ref(0.7);
+        const isExporting = ref(false);
+        const showDonateModal = ref(false);
+        const lang = ref('fr');
+        const cvRegion = ref('EU');
+        
+        const t = (key) => translations[lang.value][key] || key;
+
+        const toasts = ref([]);
+        let toastId = 0;
+        const showToast = (message, type = 'success') => {
+          const id = toastId++;
+          toasts.value.push({ id, message, type });
+          setTimeout(() => { toasts.value = toasts.value.filter(t => t.id !== id); }, 3000);
         };
 
-        const app = createApp({
-            setup() {
-                // State
-                const currentView = ref('dashboard');
-                const theme = ref(localStorage.getItem('xeasy_theme') || 'light');
-                const lang = ref(localStorage.getItem('xeasy_lang') || 'fr');
+        const openSections = reactive({ personal: true, experience: false, education: false, skills: false, extra: false });
+        const toggleSection = (sec) => { openSections[sec] = !openSections[sec]; };
 
-                // View Titles
-                const viewTitle = computed(() => {
-                    const titles = {
-                        dashboard: "Dashboard",
-                        cvpro: "X-Easy CV Pro",
-                        audit: "Web Audit Pro",
-                        trade: "Global Trade / Sourcing"
-                    };
-                    return titles[currentView.value];
-                });
+        const design = reactive({
+          template: 'corporate',
+          color: '#2563eb', 
+          font: "'DM Sans', sans-serif",
+          textSize: "1",
+          layoutDir: "row",
+          spacing: "30px",
+          showPhoto: true,
+          removeWatermark: false
+        });
+        const colorPalette = ['#2563eb', '#0f172a', '#059669', '#dc2626', '#7c3aed', '#ea580c', '#000000', '#0891b2'];
 
-                // i18n Helper
-                const t = (key) => translations[lang.value][key] || key;
-
-                const toggleTheme = () => {
-                    theme.value = theme.value === 'light' ? 'dark' : 'light';
-                    document.documentElement.setAttribute('data-theme', theme.value);
-                    localStorage.setItem('xeasy_theme', theme.value);
-                };
-
-                const toggleLang = () => {
-                    lang.value = lang.value === 'fr' ? 'en' : 'fr';
-                    localStorage.setItem('xeasy_lang', lang.value);
-                };
-
-                // --- CV PRO Logic ---
-                const savedCv = JSON.parse(localStorage.getItem('xeasy_cv')) || {
-                    name: '', title: '', email: '', summary: '',
-                    experiences: [{ company: '', role: '' }]
-                };
-                const cv = reactive(savedCv);
-
-                watch(cv, (newVal) => {
-                    localStorage.setItem('xeasy_cv', JSON.stringify(newVal));
-                }, { deep: true });
-
-                const addExperience = () => cv.experiences.push({ company: '', role: '' });
-                const removeExperience = (idx) => cv.experiences.splice(idx, 1);
-
-                const downloadPDF = async () => {
-                    const element = document.getElementById('cv-document');
-                    const canvas = await html2canvas(element, { scale: 2 });
-                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                    const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-                    pdf.save(`CV_${cv.name || 'X-Easy'}.pdf`);
-                };
-
-                // --- WEB AUDIT Logic ---
-                const auditState = reactive({
-                    url: '',
-                    loading: false,
-                    analyzed: false,
-                    results: { seo: 0, perf: 0, ui: 0 }
-                });
-
-                const runAudit = () => {
-                    if(!auditState.url) return;
-                    auditState.loading = true;
-                    // Mocking API / Analysis delay
-                    setTimeout(() => {
-                        auditState.results.seo = Math.floor(Math.random() * 40) + 50; // Score 50-90
-                        auditState.results.perf = Math.floor(Math.random() * 50) + 40; 
-                        auditState.results.ui = Math.floor(Math.random() * 30) + 70;
-                        auditState.loading = false;
-                        auditState.analyzed = true;
-                    }, 2500);
-                };
-
-                // --- GLOBAL TRADE Logic ---
-                const tradeProducts = ref([
-                    { id: 1, name: 'Machine d\'emballage Auto', origin: 'Shenzhen, Chine', price: '2,500$', moq: '1 unité', icon: 'fas fa-cogs' },
-                    { id: 2, name: 'Smartwatch OEM Premium', origin: 'Guangzhou, Chine', price: '12.50$', moq: '500 unités', icon: 'fas fa-clock' },
-                    { id: 3, name: 'Panneaux Solaires 500W', origin: 'Zhejiang, Chine', price: '45.00$', moq: '50 unités', icon: 'fas fa-solar-panel' }
-                ]);
-
-                // Initialization
-                onMounted(() => {
-                    document.documentElement.setAttribute('data-theme', theme.value);
-                });
-
-                return {
-                    currentView, theme, lang, viewTitle, t, toggleTheme, toggleLang,
-                    cv, addExperience, removeExperience, downloadPDF,
-                    auditState, runAudit, tradeProducts
-                };
-            }
+        const cv = reactive({
+          personal: {
+            firstname: 'Jean', lastname: 'Dupont', title: 'Développeur Frontend Vue.js',
+            summary: 'Développeur passionné avec plus de 5 ans d\'expérience dans la création d\'interfaces web performantes.',
+            email: 'jean.dupont@email.com', phone: '+33 6 12 34 56 78', address: 'Paris, France', linkedin: 'linkedin.com/in/jeandupont',
+            github: '', nationality: '', license: '', photo: ''
+          },
+          experience: [
+            { title: 'Développeur Frontend Senior', company: 'Tech Solutions SAS', startDate: '2020', endDate: 'Présent', description: 'Développement d\'applications SaaS en Vue.js 3. Optimisation des performances.' }
+          ],
+          education: [
+            { degree: 'Master en Ingénierie Logicielle', school: 'Université de Technologie', year: '2019' }
+          ],
+          skillsString: 'Vue.js, JavaScript, HTML/CSS, Git, UI/UX Design, Agile',
+          languagesString: 'Français (Natif), Anglais (Courant)',
+          certifications: [],
+          projects: []
         });
 
-        app.mount('#app');
-    </script>
+        const parsedSkills = computed(() => cv.skillsString.split(',').map(s => s.trim()).filter(s => s));
+        const parsedLanguages = computed(() => cv.languagesString.split(',').map(s => s.trim()).filter(s => s));
+        const initials = computed(() => {
+          const f = cv.personal.firstname ? cv.personal.firstname.charAt(0).toUpperCase() : '';
+          const l = cv.personal.lastname ? cv.personal.lastname.charAt(0).toUpperCase() : '';
+          return f + l || 'CV';
+        });
+
+        // --- NOUVEAU : ATS SCORE COMPUTATION ---
+        const atsScore = computed(() => {
+          let score = 0;
+          if(cv.personal.firstname && cv.personal.lastname) score += 10;
+          if(cv.personal.email && cv.personal.phone) score += 10;
+          if(cv.personal.summary && cv.personal.summary.length > 50) score += 15;
+          if(cv.experience.length > 0) score += 25;
+          if(cv.education.length > 0) score += 15;
+          if(parsedSkills.value.length > 3) score += 15;
+          if(cv.personal.linkedin) score += 5;
+          if(cv.certifications.length > 0 || cv.projects.length > 0) score += 5;
+          
+          // Malus US Format with photo
+          if(cvRegion.value === 'NA' && design.showPhoto) score -= 20;
+
+          return Math.max(0, Math.min(100, score));
+        });
+
+        const atsColor = computed(() => {
+          if(atsScore.value > 80) return 'var(--success)';
+          if(atsScore.value > 50) return 'var(--warning)';
+          return 'var(--danger)';
+        });
+
+        const atsMessage = computed(() => {
+          if(cvRegion.value === 'NA' && design.showPhoto) return lang.value === 'fr' ? "⚠️ Photo déconseillée aux USA/Canada (Risque ATS)" : "⚠️ Photo not recommended in US/Canada (ATS Risk)";
+          if(atsScore.value > 80) return lang.value === 'fr' ? "Excellent ! CV prêt pour les recruteurs." : "Excellent! Resume ready for recruiters.";
+          if(atsScore.value > 50) return lang.value === 'fr' ? "Bien, mais ajoutez plus de détails (LinkedIn, résumé)." : "Good, but add more details (LinkedIn, summary).";
+          return lang.value === 'fr' ? "Complétez votre profil pour améliorer votre visibilité." : "Complete your profile to improve visibility.";
+        });
+
+        const applyRegionRules = () => {
+          if(cvRegion.value === 'NA') {
+            design.template = 'usa';
+            design.showPhoto = false;
+            showToast(lang.value === 'fr' ? 'Format US appliqué : Photo retirée, 1 colonne.' : 'US Format applied: No photo, 1 column.', 'info');
+          } else {
+            design.template = 'corporate';
+            design.showPhoto = true;
+          }
+        };
+
+        const updateRegion = () => { /* Handle lang change specifics if needed */ };
+
+        const addExperience = () => { cv.experience.push({ title: '', company: '', startDate: '', endDate: '', description: '' }); openSections.experience = true; };
+        const addEducation = () => { cv.education.push({ degree: '', school: '', year: '' }); openSections.education = true; };
+        const addCertification = () => { cv.certifications.push({ name: '', issuer: '', year: '' }); openSections.extra = true; };
+        const addProject = () => { cv.projects.push({ name: '', desc: '', link: '' }); openSections.extra = true; };
+
+        const handlePhotoUpload = (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => { cv.personal.photo = e.target.result; };
+            reader.readAsDataURL(file);
+          }
+        };
+
+        const toggleDarkMode = () => {
+          darkMode.value = !darkMode.value;
+          document.documentElement.setAttribute('data-theme', darkMode.value ? 'dark' : 'light');
+        };
+
+        const saveToStorage = () => { localStorage.setItem('cvprox_data', JSON.stringify({ cv, design, lang: lang.value })); };
+        const loadFromStorage = () => {
+          const data = localStorage.getItem('cvprox_data');
+          if (data) {
+            const parsed = JSON.parse(data);
+            if(parsed.cv) Object.assign(cv, parsed.cv);
+            if(parsed.design) Object.assign(design, parsed.design);
+            if(parsed.lang) lang.value = parsed.lang;
+          }
+        };
+
+        const importJSON = (event) => {
+          const file = event.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const data = JSON.parse(e.target.result);
+              if (data.cv) Object.assign(cv, data.cv);
+              if (data.design) Object.assign(design, data.design);
+              showToast('Données importées !', 'success');
+            } catch (err) { showToast('Erreur fichier', 'error'); }
+          };
+          reader.readAsText(file);
+          event.target.value = '';
+        };
+
+        // --- CONSERVATION EXPORT EXISTANT (Modifié pour Watermark) ---
+        const prepareCloneForExport = () => {
+          const previewElement = document.getElementById('cv-preview');
+          const clone = previewElement.cloneNode(true);
+          
+          clone.style.transform = 'none';
+          clone.style.width = '794px';
+          clone.style.height = 'auto';
+          clone.style.minHeight = '1123px';
+          clone.style.margin = '0';
+          clone.style.boxShadow = 'none';
+
+          const wrapper = document.createElement('div');
+          wrapper.style.position = 'fixed';
+          wrapper.style.top = '0';
+          wrapper.style.left = '-10000px'; 
+          wrapper.style.width = '794px';
+          wrapper.style.height = 'auto';
+          wrapper.style.backgroundColor = 'white';
+          wrapper.style.zIndex = '-1000';
+          
+          wrapper.appendChild(clone);
+          document.body.appendChild(wrapper);
+          return { wrapper, clone };
+        };
+
+        const exportPDF = async () => {
+          try {
+            isExporting.value = true;
+            showToast(t('generating'), 'info');
+
+            const { wrapper, clone } = prepareCloneForExport();
+
+            const images = clone.getElementsByTagName('img');
+            await Promise.all(Array.from(images).map(img => {
+              if (img.complete) return Promise.resolve();
+              return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+            }));
+
+            const canvas = await html2canvas(clone, { scale: 2, useCORS: true, backgroundColor: '#ffffff', width: 794, windowWidth: 794 });
+            document.body.removeChild(wrapper);
+
+            const imgData = canvas.toDataURL('image/jpeg', 0.98);
+            const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const canvasHeightInMm = (canvas.height * pdfWidth) / canvas.width;
+            
+            let heightLeft = canvasHeightInMm;
+            let position = 0; 
+            const topPadding = 15;
+
+            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, canvasHeightInMm);
+            heightLeft -= pageHeight;
+
+            let pageIndex = 1;
+            while (heightLeft > 0) {
+              pdf.addPage();
+              position = -(pageHeight * pageIndex) + (topPadding * pageIndex);
+              pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, canvasHeightInMm);
+              
+              if(!['usa', 'canada'].includes(design.template)) {
+                let sidebarWidth = design.template === 'minimal' ? 0 : (pdfWidth * 0.35);
+                if(design.layoutDir === 'row-reverse') {
+                    pdf.setFillColor(255, 255, 255);
+                    pdf.rect(0, 0, pdfWidth * 0.65, topPadding, 'F');
+                    pdf.setFillColor(248, 250, 252);
+                    pdf.rect(pdfWidth * 0.65, 0, sidebarWidth, topPadding, 'F');
+                } else {
+                    pdf.setFillColor(design.template === 'executive' ? 26 : 248, design.template === 'executive' ? 26 : 250, design.template === 'executive' ? 26 : 252);
+                    pdf.rect(0, 0, sidebarWidth, topPadding, 'F');
+                    pdf.setFillColor(255, 255, 255);
+                    pdf.rect(sidebarWidth, 0, pdfWidth - sidebarWidth, topPadding, 'F');
+                }
+              } else {
+                pdf.setFillColor(255, 255, 255);
+                pdf.rect(0, 0, pdfWidth, topPadding, 'F');
+              }
+              heightLeft -= (pageHeight - topPadding);
+              pageIndex++;
+            }
+
+            pdf.save(`CV_${cv.personal.firstname || 'Mon'}_${cv.personal.lastname || 'CV'}.pdf`);
+            isExporting.value = false;
+            setTimeout(() => { showDonateModal.value = true; }, 1000);
+            
+          } catch (err) {
+            isExporting.value = false;
+            showToast('Erreur de génération', 'error');
+            const badWrapper = document.body.lastChild;
+            if (badWrapper && badWrapper.style.left === '-10000px') document.body.removeChild(badWrapper);
+          }
+        };
+
+        const exportPNG = async () => {
+          try {
+            isExporting.value = true;
+            showToast(t('generating'), 'info');
+            const { wrapper, clone } = prepareCloneForExport();
+            const canvas = await html2canvas(clone, { scale: 2, useCORS: true, backgroundColor: '#ffffff', width: 794, windowWidth: 794 });
+            document.body.removeChild(wrapper);
+            const url = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `CV_${cv.personal.firstname || 'Profil'}.png`;
+            a.click();
+            isExporting.value = false;
+            setTimeout(() => { showDonateModal.value = true; }, 1000);
+          } catch (err) { isExporting.value = false; showToast('Erreur', 'error'); }
+        };
+
+        const confirmReset = () => {
+          if(confirm('Tout effacer ?')) { localStorage.removeItem('cvprox_data'); location.reload(); }
+        };
+        const exportJSON = () => {
+          const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({cv, design, lang: lang.value}));
+          const a = document.createElement('a');
+          a.setAttribute("href", dataStr);
+          a.setAttribute("download", "cv_sauvegarde.json");
+          a.click();
+        };
+
+        watch([cv, design, lang], saveToStorage, { deep: true });
+
+        onMounted(() => {
+          loadFromStorage();
+          const adjustScale = () => {
+            const area = document.querySelector('.preview-area');
+            if (area) previewScale.value = Math.min(1, (area.clientWidth - 80) / 794);
+          };
+          window.addEventListener('resize', adjustScale);
+          setTimeout(adjustScale, 100);
+        });
+
+        return {
+          activeTab, darkMode, previewScale, isExporting, showDonateModal, toasts, openSections, lang, cvRegion, t,
+          cv, design, colorPalette, parsedSkills, parsedLanguages, initials, atsScore, atsColor, atsMessage,
+          toggleDarkMode, handlePhotoUpload, toggleSection, addExperience, addEducation, addCertification, addProject,
+          confirmReset, exportJSON, importJSON, exportPDF, exportPNG, applyRegionRules, updateRegion
+        };
+      }
+    }).mount('#app');
+  </script>
 </body>
 </html>
