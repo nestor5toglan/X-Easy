@@ -1,387 +1,548 @@
 <!DOCTYPE html>
-<html lang="fr" class="dark">
+<html lang="fr" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X-EASY | CV PRO Studio</title>
-
-    <!-- BIBLIOTHÈQUES & FONTS -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>X-Easy CV Pro — Générateur de CV Professionnel</title>
+  <meta name="description" content="Créez votre CV professionnel en quelques minutes. Templates premium, export PDF, personnalisation complète." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.15/vue.global.prod.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    /* =========================================
+       VARIABLES & RESET
+       ========================================= */
+    :root {
+      --bg-body: #f1f5f9;
+      --bg-panel: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --danger: #ef4444;
+      --success: #10b981;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      --radius: 8px;
+    }
     
-    <!-- EXPORT ENGINE -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    [data-theme="dark"] {
+      --bg-body: #0f172a;
+      --bg-panel: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+    }
 
-    <style>
-        :root { --primary: #3b82f6; }
-        body { font-family: 'DM Sans', sans-serif; }
-        [v-cloak] { display: none; }
-        
-        /* DESIGN SYSTEM "LINEAR / VERCEL" */
-        .glass { backdrop-filter: blur(12px); background-color: rgba(255, 255, 255, 0.8); }
-        .dark .glass { background-color: rgba(0, 0, 0, 0.8); }
-        .border-premium { border-color: rgba(226, 232, 240, 0.6); }
-        .dark .border-premium { border-color: rgba(30, 41, 59, 0.5); }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background-color: var(--bg-body); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    button { cursor: pointer; font-family: inherit; border: none; background: none; }
+    input, textarea, select { font-family: inherit; width: 100%; }
+    
+    /* =========================================
+       LAYOUT (APP)
+       ========================================= */
+    .app-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 24px; background-color: var(--bg-panel); border-bottom: 1px solid var(--border-color); z-index: 10; }
+    .logo { font-size: 1.25rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+    .logo i { color: var(--primary); }
+    .header-actions { display: flex; gap: 12px; align-items: center; }
+    
+    .btn { padding: 8px 16px; border-radius: var(--radius); font-weight: 500; font-size: 0.9rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary { background-color: var(--primary); color: white; }
+    .btn-primary:hover { background-color: var(--primary-hover); }
+    .btn-outline { border: 1px solid var(--border-color); color: var(--text-main); background: var(--bg-panel); }
+    .btn-outline:hover { background-color: var(--bg-body); }
+    .btn-paypal { background-color: #ffc439; color: #000; font-weight: 600; border: 1px solid #eab308; }
+    .btn-paypal:hover { background-color: #fbbf24; }
+    .btn-icon { width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); border-radius: var(--radius); color: var(--text-main); }
+    
+    .main-container { display: flex; flex: 1; overflow: hidden; }
+    .sidebar { width: 400px; background-color: var(--bg-panel); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; overflow-y: auto; }
+    
+    .preview-area { 
+      flex: 1; 
+      background-color: #e2e8f0; 
+      display: flex; 
+      align-items: flex-start;
+      justify-content: center; 
+      overflow: auto;
+      padding: 40px; 
+      position: relative; 
+    }
+    
+    /* =========================================
+       SIDEBAR & FORMS
+       ========================================= */
+    .tabs { display: flex; border-bottom: 1px solid var(--border-color); background: var(--bg-panel); position: sticky; top: 0; z-index: 5; }
+    .tab { flex: 1; padding: 15px; text-align: center; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid transparent; }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    
+    .section-wrapper { padding: 20px; border-bottom: 1px solid var(--border-color); }
+    .section-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding-bottom: 10px; }
+    .section-header h3 { font-size: 1.1rem; color: var(--text-main); }
+    
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; }
+    .form-group input, .form-group textarea, .form-group select { padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--bg-body); color: var(--text-main); font-size: 0.95rem; }
+    .form-group input:focus, .form-group textarea:focus { outline: 2px solid var(--primary); border-color: transparent; }
+    
+    .photo-upload { display: flex; align-items: center; gap: 15px; }
+    .photo-preview { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; background: #cbd5e1; border: 2px solid var(--border-color); }
+    
+    .item-card { background: var(--bg-body); border: 1px solid var(--border-color); padding: 15px; border-radius: var(--radius); margin-bottom: 15px; position: relative; }
+    .btn-remove { position: absolute; top: 10px; right: 10px; color: var(--danger); background: none; font-size: 1.1rem; }
+    
+    /* =========================================
+       CV DOCUMENT (PIXEL PERFECT A4 EXTENSIBLE)
+       ========================================= */
+    .cv-scale-wrapper {
+      transition: transform 0.2s ease;
+      transform-origin: top center;
+    }
+    
+    .cv-document {
+      width: 794px !important;
+      min-height: 1123px;
+      height: auto;
+      background: white;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      position: relative;
+      box-sizing: border-box;
+      font-family: var(--cv-font, 'DM Sans'), sans-serif;
+      color: #333;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      /* AJOUT POUR S'ASSURER QUE LA COLONNE PRENNE TOUTE LA HAUTEUR */
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .cv-document h1, .cv-document h2, .cv-document h3, .cv-document p, .cv-document ul, .cv-document li {
+      margin: 0; padding: 0; line-height: 1.5; color: inherit; box-sizing: border-box;
+    }
 
-        /* CV ENGINE (SOURCE 1 INTEGRATION) */
-        .cv-document {
-            width: 794px !important;
-            min-height: 1123px;
-            height: auto;
-            background: white;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            font-family: var(--cv-font, 'DM Sans'), sans-serif;
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            transform-origin: top center;
-        }
+    /* =========================================
+       TEMPLATE: CORPORATE PREMIUM
+       ========================================= */
+    .template-corporate { 
+      display: flex; 
+      flex-direction: column; 
+      width: 100%; 
+      flex: 1; /* AJOUT : Force le template à s'étendre jusqu'en bas */
+    }
+    
+    .template-corporate .cv-header {
+      width: 100%;
+      background-color: var(--cv-color);
+      color: white;
+      padding: 40px;
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      box-sizing: border-box;
+      flex-shrink: 0;
+    }
 
-        .template-corporate .cv-header {
-            background-color: var(--cv-color);
-            color: white; padding: 40px; display: flex; align-items: center; gap: 30px;
-        }
+    .template-corporate .cv-photo {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid rgba(255,255,255,0.3);
+      flex-shrink: 0;
+    }
 
-        .template-corporate .cv-photo { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 4px solid rgba(255,255,255,0.3); }
-        .template-corporate .cv-photo-fallback {
-            width: 130px; height: 130px; border-radius: 50%; background: rgba(255,255,255,0.15);
-            display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 700;
-        }
+    /* AJOUT : AVATAR INITIALES PREMIUM (Si pas de photo) */
+    .template-corporate .cv-photo-fallback {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.15);
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 46px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
 
-        .template-corporate .cv-body { display: flex; flex: 1; }
-        .template-corporate .cv-sidebar { width: 35%; background-color: #f8fafc; padding: 30px; border-right: 1px solid #e2e8f0; }
-        .template-corporate .cv-main { width: 65%; padding: 30px; background-color: #ffffff; }
-        
-        .cv-section-title {
-            font-size: 14px; font-weight: 700; color: var(--cv-color); text-transform: uppercase;
-            margin-bottom: 15px; padding-bottom: 5px; border-bottom: 2px solid var(--cv-color); letter-spacing: 1px;
-        }
+    .template-corporate .cv-header-content { flex: 1; }
+    .template-corporate .cv-name { font-size: 32px; font-weight: 700; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+    .template-corporate .cv-title { font-size: 18px; opacity: 0.9; font-weight: 300; }
+    
+    .template-corporate .cv-body { 
+      display: flex; 
+      width: 100%; 
+      flex: 1; /* AJOUT : Permet d'étirer le contenu principal et la sidebar */
+    }
+    
+    .template-corporate .cv-sidebar {
+      width: 35%;
+      background-color: #f8fafc;
+      padding: 30px;
+      border-right: 1px solid #e2e8f0;
+      box-sizing: border-box;
+    }
+    .template-corporate .cv-main {
+      width: 65%;
+      padding: 30px;
+      background-color: #ffffff;
+      box-sizing: border-box;
+    }
+    
+    .template-corporate .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--cv-color);
+      text-transform: uppercase;
+      margin-bottom: 15px;
+      padding-bottom: 5px;
+      border-bottom: 2px solid var(--cv-color);
+      letter-spacing: 0.5px;
+    }
+    
+    .template-corporate .contact-item { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 13px; color: #475569; word-break: break-all; }
+    .template-corporate .contact-item i { color: var(--cv-color); width: 16px; text-align: center; }
+    
+    .template-corporate .skills-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .template-corporate .skill-tag { background: #e2e8f0; color: #334155; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+    
+    .template-corporate .item { margin-bottom: 20px; }
+    .template-corporate .item-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+    .template-corporate .item-title { font-weight: 700; font-size: 15px; color: #1e293b; }
+    .template-corporate .item-date { font-size: 12px; color: var(--cv-color); font-weight: 600; flex-shrink: 0; }
+    .template-corporate .item-subtitle { font-size: 14px; color: #64748b; font-weight: 500; margin-bottom: 5px; }
+    .template-corporate .item-desc { font-size: 13px; color: #475569; text-align: justify; }
 
-        .cv-input {
-            @apply w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all;
-        }
-    </style>
+    .template-corporate .summary-text { font-size: 14px; color: #475569; text-align: justify; margin-bottom: 25px; line-height: 1.6; }
 
-    <script>
-        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { darkBg: '#000', darkCard: '#0a0a0a' } } } }
-    </script>
+    /* =========================================
+       MODAL & TOAST
+       ========================================= */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
+    .modal-content { background: var(--bg-panel); width: 100%; max-width: 500px; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+    .modal-content h2 { margin-bottom: 15px; color: var(--text-main); }
+    .modal-content p { color: var(--text-muted); margin-bottom: 25px; line-height: 1.5; }
+    
+    .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+    .toast { padding: 15px 20px; border-radius: 8px; color: white; display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow-md); animation: slideIn 0.3s ease; }
+    .toast.success { background-color: var(--success); }
+    .toast.error { background-color: var(--danger); }
+    .toast.info { background-color: var(--primary); }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-body); }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
 </head>
-<body class="bg-slate-50 dark:bg-darkBg text-slate-900 dark:text-slate-100 min-h-screen overflow-hidden">
+<body>
+  <div id="app" style="display: contents;">
+    <!-- Header and Sidebar Components go here -->
+    <!-- Main content & Vue logic handling goes below -->
+  </div>
 
-<div id="app" v-cloak class="flex h-screen">
-    
-    <!-- SIDEBAR NAVIGATION -->
-    <aside class="w-20 lg:w-64 border-r border-premium bg-white dark:bg-darkBg flex flex-col z-50">
-        <div class="p-6">
-            <h1 class="font-black text-xl tracking-tighter text-blue-600 hidden lg:block">X-EASY</h1>
-            <div class="lg:hidden text-center"><i class="fa-solid fa-bolt text-blue-600"></i></div>
-        </div>
-        <nav class="flex-1 px-4 space-y-2">
-            <div v-for="item in menu" :key="item.id" @click="activeTab = item.id"
-                 :class="activeTab === item.id ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900/50'"
-                 class="flex items-center p-3 rounded-xl cursor-pointer transition-all">
-                <i :class="item.icon" class="w-5 text-center"></i>
-                <span class="ml-3 font-bold text-sm hidden lg:block">{{ item.label }}</span>
-            </div>
-        </nav>
-        <div class="p-4">
-            <button @click="toggleTheme" class="w-full p-3 rounded-xl border border-premium hover:bg-slate-100 dark:hover:bg-slate-900">
-                <i :class="isDark ? 'fa-sun' : 'fa-moon'" class="text-blue-500"></i>
-            </button>
-        </div>
-    </aside>
+  <script>
+    const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
 
-    <!-- MAIN VIEW -->
-    <main class="flex-1 flex flex-col overflow-hidden">
-        
-        <!-- MODULE CV PRO INTERNATIONAL -->
-        <div v-if="activeTab === 'cv-pro'" class="flex flex-1 overflow-hidden">
-            
-            <!-- GAUCHE : FORMULAIRE -->
-            <div class="w-full lg:w-[450px] border-r border-premium bg-white dark:bg-darkCard overflow-y-auto p-6 space-y-8 custom-scrollbar">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-black uppercase tracking-tight">Configuration</h2>
-                    <div class="flex gap-2">
-                        <button @click="cvTab = 'content'" :class="cvTab === 'content' ? 'text-blue-600' : 'opacity-40'" class="text-xs font-bold uppercase">Contenu</button>
-                        <button @click="cvTab = 'design'" :class="cvTab === 'design' ? 'text-blue-600' : 'opacity-40'" class="text-xs font-bold uppercase">Style</button>
-                    </div>
-                </div>
-
-                <!-- Onglet Contenu -->
-                <div v-show="cvTab === 'content'" class="space-y-6">
-                    <!-- Photo -->
-                    <div class="p-4 border border-premium rounded-2xl flex items-center gap-4">
-                        <img :src="cv.personal.photo || 'https://via.placeholder.com/100'" class="w-12 h-12 rounded-full object-cover border border-premium">
-                        <input type="file" @change="handlePhoto" class="text-[10px]">
-                    </div>
-
-                    <!-- Infos -->
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-3">
-                            <input v-model="cv.personal.firstname" placeholder="Prénom" class="cv-input">
-                            <input v-model="cv.personal.lastname" placeholder="Nom" class="cv-input">
-                        </div>
-                        <input v-model="cv.personal.title" placeholder="Titre professionnel" class="cv-input">
-                        <textarea v-model="cv.personal.summary" placeholder="Profil / Résumé" class="cv-input h-24 pt-2"></textarea>
-                        <input v-model="cv.personal.email" placeholder="Email" class="cv-input">
-                        <input v-model="cv.personal.phone" placeholder="Téléphone" class="cv-input">
-                    </div>
-
-                    <!-- Expériences -->
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center"><h3 class="text-xs font-black uppercase opacity-50">Expériences</h3> <button @click="addExp" class="text-blue-500 text-xs font-bold">+ Ajouter</button></div>
-                        <div v-for="(exp, i) in cv.experience" class="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl relative group">
-                            <button @click="cv.experience.splice(i, 1)" class="absolute top-2 right-2 text-red-500 opacity-0 group-hover:opacity-100">&times;</button>
-                            <input v-model="exp.title" placeholder="Poste" class="cv-input mb-2 font-bold bg-transparent border-none p-0">
-                            <input v-model="exp.company" placeholder="Entreprise" class="cv-input mb-2 text-xs">
-                            <input v-model="exp.startDate" placeholder="Dates" class="cv-input text-xs">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Onglet Design -->
-                <div v-show="cvTab === 'design'" class="space-y-6">
-                    <div>
-                        <label class="text-xs font-black uppercase opacity-50 block mb-3">Couleur Thème</label>
-                        <div class="flex flex-wrap gap-3">
-                            <button v-for="c in palette" @click="design.color = c" :style="{background: c}" 
-                                    :class="design.color === c ? 'ring-2 ring-offset-2 ring-blue-500' : ''"
-                                    class="w-8 h-8 rounded-full border border-white/20"></button>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="text-xs font-black uppercase opacity-50 block mb-3">Typographie</label>
-                        <select v-model="design.font" class="cv-input">
-                            <option value="'DM Sans', sans-serif">DM Sans (Moderne)</option>
-                            <option value="'DM Serif Display', serif">DM Serif (Élégant)</option>
-                            <option value="'JetBrains Mono', monospace">Tech Mono</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Actions Export -->
-                <div class="pt-6 border-t border-premium space-y-3">
-                    <button @click="exportPDF" :disabled="isExporting" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black shadow-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-3">
-                        <i :class="isExporting ? 'fa-spinner fa-spin' : 'fa-file-pdf'"></i>
-                        {{ isExporting ? 'Génération...' : 'Télécharger PDF' }}
-                    </button>
-                    <button @click="exportPNG" class="w-full py-3 border border-premium rounded-xl font-bold text-sm hover:bg-slate-100 dark:hover:bg-slate-900">Image PNG</button>
-                </div>
-            </div>
-
-            <!-- DROITE : LIVE PREVIEW -->
-            <div class="hidden lg:flex flex-1 bg-slate-200 dark:bg-slate-800 p-10 justify-center overflow-auto items-start">
-                <div id="cv-scale-container" class="transition-transform duration-200 ease-out" :style="{ transform: `scale(${previewScale})` }">
-                    <div id="cv-preview" class="cv-document template-corporate shadow-2xl" :style="{ '--cv-color': design.color, '--cv-font': design.font }">
-                        
-                        <!-- Header CV -->
-                        <div class="cv-header">
-                            <img v-if="cv.personal.photo" :src="cv.personal.photo" class="cv-photo">
-                            <div v-else class="cv-photo-fallback">{{ initials }}</div>
-                            <div class="flex-1">
-                                <h1 class="text-4xl font-black uppercase tracking-tight">{{ cv.personal.firstname }} {{ cv.personal.lastname }}</h1>
-                                <p class="text-xl font-light opacity-90">{{ cv.personal.title }}</p>
-                            </div>
-                        </div>
-
-                        <!-- Body CV -->
-                        <div class="cv-body">
-                            <div class="cv-sidebar">
-                                <div class="cv-section-title">Contact</div>
-                                <div class="space-y-3 text-xs font-medium text-slate-500">
-                                    <p v-if="cv.personal.email"><i class="fa-solid fa-envelope w-5 text-blue-500"></i> {{ cv.personal.email }}</p>
-                                    <p v-if="cv.personal.phone"><i class="fa-solid fa-phone w-5 text-blue-500"></i> {{ cv.personal.phone }}</p>
-                                    <p v-if="cv.personal.linkedin"><i class="fa-brands fa-linkedin w-5 text-blue-500"></i> {{ cv.personal.linkedin }}</p>
-                                </div>
-                                
-                                <div class="mt-8" v-if="cv.skillsString">
-                                    <div class="cv-section-title">Expertise</div>
-                                    <div class="flex flex-wrap gap-2">
-                                        <span v-for="s in cv.skillsString.split(',')" class="bg-slate-200 text-slate-700 px-2 py-1 rounded text-[10px] font-bold">{{ s.trim() }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="cv-main">
-                                <div v-if="cv.personal.summary">
-                                    <div class="cv-section-title">Profil</div>
-                                    <p class="text-sm text-slate-600 leading-relaxed mb-8">{{ cv.personal.summary }}</p>
-                                </div>
-                                <div v-if="cv.experience.length">
-                                    <div class="cv-section-title">Expériences</div>
-                                    <div v-for="exp in cv.experience" class="mb-6">
-                                        <div class="flex justify-between items-start">
-                                            <h4 class="font-bold text-slate-800">{{ exp.title }}</h4>
-                                            <span class="text-[10px] font-black text-blue-600">{{ exp.startDate }}</span>
-                                        </div>
-                                        <p class="text-xs font-bold text-slate-400 mb-2">{{ exp.company }}</p>
-                                        <p class="text-[11px] text-slate-600 leading-snug">{{ exp.description }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- DASHBOARD PAR DÉFAUT -->
-        <div v-if="activeTab === 'dashboard'" class="p-10 max-w-4xl mx-auto space-y-10 animate-fade-in">
-            <h2 class="text-4xl font-black tracking-tighter">Bienvenue sur X-EASY.</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div @click="activeTab = 'cv-pro'" class="p-8 border border-premium rounded-[32px] bg-white dark:bg-darkCard hover:border-blue-500 transition-all cursor-pointer group">
-                    <i class="fa-solid fa-file-invoice text-3xl text-blue-600 mb-4 group-hover:scale-110 transition-transform"></i>
-                    <h3 class="font-black text-xl mb-2">CV PRO International</h3>
-                    <p class="text-slate-500 text-sm">Générateur statique premium avec export PDF Pixel Perfect.</p>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- TOASTS -->
-    <div class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2">
-        <transition-group name="list">
-            <div v-for="toast in toasts" :key="toast.id" class="px-4 py-3 rounded-xl shadow-2xl glass border border-premium text-sm font-bold flex items-center gap-3">
-                <i :class="toast.icon" class="text-blue-500"></i> {{ toast.msg }}
-            </div>
-        </transition-group>
-    </div>
-</div>
-
-<script>
-const { createApp, ref, reactive, computed, onMounted, watch } = Vue;
-
-createApp({
-    setup() {
-        const activeTab = ref('dashboard');
-        const cvTab = ref('content');
-        const isDark = ref(true);
+    createApp({
+      setup() {
+        const activeTab = ref('content');
+        const darkMode = ref(false);
+        const previewScale = ref(0.7);
         const isExporting = ref(false);
-        const previewScale = ref(0.65);
-        const toasts = ref([]);
+        const showDonateModal = ref(false);
         
-        const palette = ['#2563eb', '#0f172a', '#059669', '#dc2626', '#7c3aed', '#ea580c'];
-        const design = reactive({ color: '#2563eb', font: "'DM Sans', sans-serif", template: 'corporate' });
+        const toasts = ref([]);
+        let toastId = 0;
+        const showToast = (message, type = 'success') => {
+          const id = toastId++;
+          toasts.value.push({ id, message, type });
+          setTimeout(() => {
+            toasts.value = toasts.value.filter(t => t.id !== id);
+          }, 3000);
+        };
+
+        const openSections = reactive({
+          personal: true, experience: false, education: false, skills: false
+        });
+        const toggleSection = (sec) => {
+          openSections[sec] = !openSections[sec];
+        };
+
+        const design = reactive({
+          template: 'corporate',
+          color: '#2563eb', 
+          font: "'DM Sans', sans-serif"
+        });
+        const colorPalette = ['#2563eb', '#0f172a', '#059669', '#dc2626', '#7c3aed', '#ea580c'];
 
         const cv = reactive({
-            personal: { firstname: 'Jean', lastname: 'Dupont', title: 'Architecte Frontend', summary: 'Développeur expert avec 8 ans d\'expérience...', email: 'jean@exemple.com', phone: '+33 6 00 00 00', linkedin: 'linkedin.com/in/jeandupont', photo: '' },
-            experience: [{ id: 1, title: 'Lead Vue Developer', company: 'Tech Corp', startDate: '2022 - Présent', description: 'Architecture de solutions SaaS...' }],
-            skillsString: 'Vue.js 3, TypeScript, Tailwind, Node.js'
+          personal: {
+            firstname: 'Jean', lastname: 'Dupont', title: 'Développeur Frontend',
+            summary: 'Développeur passionné avec plus de 5 ans d\'expérience dans la création d\'interfaces web performantes et intuitives.',
+            email: 'jean.dupont@email.com', phone: '+33 6 12 34 56 78', address: 'Paris, France', linkedin: 'linkedin.com/in/jeandupont',
+            photo: ''
+          },
+          experience: [
+            { title: 'Développeur Frontend Senior', company: 'Tech Solutions SAS', startDate: '2020', endDate: 'Présent', description: 'Développement d\'applications SaaS en Vue.js 3. Optimisation des performances et mise en place de tests e2e.' }
+          ],
+          education: [
+            { degree: 'Master en Ingénierie Logicielle', school: 'Université de Technologie', year: '2019' }
+          ],
+          skillsString: 'Vue.js, JavaScript, HTML/CSS, Git, UI/UX Design, Agile',
+          languagesString: 'Français (Natif), Anglais (Courant)'
         });
 
-        // ACTIONS
-        const toggleTheme = () => {
-            isDark.value = !isDark.value;
-            document.documentElement.classList.toggle('dark', isDark.value);
+        const parsedSkills = computed(() => cv.skillsString.split(',').map(s => s.trim()).filter(s => s));
+        const parsedLanguages = computed(() => cv.languagesString.split(',').map(s => s.trim()).filter(s => s));
+
+        // AJOUT : Calcul des initiales si aucune photo n'est présente
+        const initials = computed(() => {
+          const f = cv.personal.firstname ? cv.personal.firstname.charAt(0).toUpperCase() : '';
+          const l = cv.personal.lastname ? cv.personal.lastname.charAt(0).toUpperCase() : '';
+          return f + l || 'CV';
+        });
+
+        const addExperience = () => {
+          cv.experience.push({ title: '', company: '', startDate: '', endDate: '', description: '' });
+          openSections.experience = true;
+        };
+        const addEducation = () => {
+          cv.education.push({ degree: '', school: '', year: '' });
+          openSections.education = true;
         };
 
-        const handlePhoto = (e) => {
+        const handlePhotoUpload = (event) => {
+          const file = event.target.files[0];
+          if (file) {
             const reader = new FileReader();
-            reader.onload = (f) => cv.personal.photo = f.target.result;
-            reader.readAsDataURL(e.target.files[0]);
+            reader.onload = (e) => { cv.personal.photo = e.target.result; };
+            reader.readAsDataURL(file);
+          }
         };
 
-        const addExp = () => cv.experience.push({ id: Date.now(), title: '', company: '', startDate: '', description: '' });
-
-        const notify = (msg, icon = 'fa-circle-check') => {
-            const id = Date.now();
-            toasts.value.push({ id, msg, icon });
-            setTimeout(() => toasts.value = toasts.value.filter(t => t.id !== id), 3000);
+        const toggleDarkMode = () => {
+          darkMode.value = !darkMode.value;
+          document.documentElement.setAttribute('data-theme', darkMode.value ? 'dark' : 'light');
         };
 
-        const initials = computed(() => (cv.personal.firstname[0] || '') + (cv.personal.lastname[0] || ''));
+        const saveToStorage = () => {
+          localStorage.setItem('cvpro_data', JSON.stringify({ cv, design }));
+        };
+        const loadFromStorage = () => {
+          const data = localStorage.getItem('cvpro_data');
+          if (data) {
+            const parsed = JSON.parse(data);
+            Object.assign(cv, parsed.cv);
+            Object.assign(design, parsed.design);
+          }
+        };
 
-        // PDF EXPORT (SOURCE 1 LOGIC)
+        const importJSON = (event) => {
+          const file = event.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try {
+              const data = JSON.parse(e.target.result);
+              if (data.cv) Object.assign(cv, data.cv);
+              if (data.design) Object.assign(design, data.design);
+              showToast('Données importées avec succès !', 'success');
+            } catch (err) {
+              showToast('Erreur lors de la lecture du fichier', 'error');
+            }
+          };
+          reader.readAsText(file);
+          event.target.value = '';
+        };
+
+        // =========================================
+        // EXPORT LOGIC MULTI-PAGES AVEC PADDING
+        // =========================================
+        
+        const prepareCloneForExport = () => {
+          const previewElement = document.getElementById('cv-preview');
+          const clone = previewElement.cloneNode(true);
+          
+          clone.style.transform = 'none';
+          clone.style.width = '794px';
+          clone.style.height = 'auto';
+          clone.style.minHeight = '1123px';
+          clone.style.margin = '0';
+          clone.style.boxShadow = 'none';
+
+          const wrapper = document.createElement('div');
+          wrapper.style.position = 'fixed';
+          wrapper.style.top = '0';
+          wrapper.style.left = '-10000px'; 
+          wrapper.style.width = '794px';
+          wrapper.style.height = 'auto';
+          wrapper.style.backgroundColor = 'white';
+          wrapper.style.zIndex = '-1000';
+          
+          wrapper.appendChild(clone);
+          document.body.appendChild(wrapper);
+          
+          return { wrapper, clone };
+        };
+
         const exportPDF = async () => {
+          try {
             isExporting.value = true;
-            notify('Génération du PDF...', 'fa-spinner fa-spin');
-            
-            const element = document.getElementById('cv-preview');
-            const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-            
+            showToast('Génération du PDF en cours...', 'info');
+
+            const { wrapper, clone } = prepareCloneForExport();
+
+            const images = clone.getElementsByTagName('img');
+            await Promise.all(Array.from(images).map(img => {
+              if (img.complete) return Promise.resolve();
+              return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+            }));
+
+            const canvas = await html2canvas(clone, {
+              scale: 2,
+              useCORS: true,
+              backgroundColor: '#ffffff',
+              width: 794,
+              windowWidth: 794
+            });
+
+            document.body.removeChild(wrapper);
+
             const imgData = canvas.toDataURL('image/jpeg', 0.98);
-            const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+            const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pageHeight = pdf.internal.pageSize.getHeight();
+
             const canvasHeightInMm = (canvas.height * pdfWidth) / canvas.width;
-
             let heightLeft = canvasHeightInMm;
-            let position = 0;
-            const topPadding = 15;
+            let position = 0; 
+            
+            // AJOUT : Espace de respiration (padding-top) pour les pages supplémentaires
+            const topPadding = 15; // 15mm de padding en haut
 
+            // Page 1
             pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, canvasHeightInMm);
             heightLeft -= pageHeight;
 
-            let pIndex = 1;
+            // Pages suivantes (si le CV est très long)
+            let pageIndex = 1;
             while (heightLeft > 0) {
-                pdf.addPage();
-                position = -(pageHeight * pIndex) + (topPadding * pIndex);
-                pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, canvasHeightInMm);
-                
-                // Mask Logic for multi-pages
-                pdf.setFillColor(248, 250, 252); pdf.rect(0, 0, pdfWidth * 0.35, topPadding, 'F');
-                pdf.setFillColor(255, 255, 255); pdf.rect(pdfWidth * 0.35, 0, pdfWidth * 0.65, topPadding, 'F');
+              pdf.addPage();
+              
+              // On décale l'image en tenant compte du padding pour ne pas manger de texte
+              position = -(pageHeight * pageIndex) + (topPadding * pageIndex);
+              pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, canvasHeightInMm);
+              
+              // === ASTUCE MAGIQUE : Masque blanc/gris pour recréer un espace naturel en haut ===
+              // 1. Masque pour la Sidebar (Gris du thème)
+              pdf.setFillColor(248, 250, 252);
+              pdf.rect(0, 0, pdfWidth * 0.35, topPadding, 'F');
+              
+              // 2. Masque pour le Contenu Principal (Blanc)
+              pdf.setFillColor(255, 255, 255);
+              pdf.rect(pdfWidth * 0.35, 0, pdfWidth * 0.65, topPadding, 'F');
 
-                heightLeft -= (pageHeight - topPadding);
-                pIndex++;
+              heightLeft -= (pageHeight - topPadding);
+              pageIndex++;
             }
 
-            pdf.save(`CV_${cv.personal.lastname}.pdf`);
+            pdf.save(`CV_${cv.personal.firstname || 'Mon'}_${cv.personal.lastname || 'CV'}.pdf`);
+
             isExporting.value = false;
-            notify('PDF téléchargé !');
+            showToast('PDF téléchargé avec succès !', 'success');
+            setTimeout(() => { showDonateModal.value = true; }, 1000);
+            
+          } catch (err) {
+            console.error(err);
+            isExporting.value = false;
+            showToast('Erreur lors de la génération du PDF', 'error');
+            const badWrapper = document.body.lastChild;
+            if (badWrapper && badWrapper.style.left === '-10000px') document.body.removeChild(badWrapper);
+          }
         };
 
         const exportPNG = async () => {
-            const element = document.getElementById('cv-preview');
-            const canvas = await html2canvas(element, { scale: 2 });
-            const link = document.createElement('a');
-            link.download = 'CV_Preview.png';
-            link.href = canvas.toDataURL();
-            link.click();
-            notify('Image enregistrée');
+          try {
+            isExporting.value = true;
+            showToast('Génération de l\'image...', 'info');
+
+            const { wrapper, clone } = prepareCloneForExport();
+
+            const canvas = await html2canvas(clone, {
+              scale: 2,
+              useCORS: true,
+              backgroundColor: '#ffffff',
+              width: 794,
+              windowWidth: 794
+            });
+
+            document.body.removeChild(wrapper);
+
+            const url = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `CV_${cv.personal.firstname || 'Profil'}.png`;
+            a.click();
+            
+            isExporting.value = false;
+            showToast('Image PNG téléchargée !', 'success');
+            setTimeout(() => { showDonateModal.value = true; }, 1000);
+          } catch (err) {
+            console.error(err);
+            isExporting.value = false;
+            showToast('Erreur lors de la génération', 'error');
+          }
         };
 
-        // RESPONSIVE SCALE
-        const adjustScale = () => {
-            const width = window.innerWidth;
-            if (width < 1024) return;
-            const available = width - 450 - 256; 
-            previewScale.value = Math.min(0.8, available / 850);
+        const confirmReset = () => {
+          if(confirm('Voulez-vous vraiment effacer toutes les données ?')) {
+            localStorage.removeItem('cvpro_data');
+            location.reload();
+          }
         };
+        const exportJSON = () => {
+          const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({cv, design}));
+          const a = document.createElement('a');
+          a.setAttribute("href", dataStr);
+          a.setAttribute("download", "sauvegarde_cv.json");
+          a.click();
+        };
+
+        watch([cv, design], saveToStorage, { deep: true });
 
         onMounted(() => {
-            const saved = localStorage.getItem('xe-cv-store');
-            if (saved) {
-                const data = JSON.parse(saved);
-                Object.assign(cv, data.cv);
-                Object.assign(design, data.design);
+          loadFromStorage();
+          
+          const adjustScale = () => {
+            const area = document.querySelector('.preview-area');
+            if (area) {
+              const availableWidth = area.clientWidth - 80;
+              previewScale.value = Math.min(1, availableWidth / 794);
             }
-            adjustScale();
-            window.addEventListener('resize', adjustScale);
+          };
+          window.addEventListener('resize', adjustScale);
+          setTimeout(adjustScale, 100);
         });
 
-        watch([cv, design], () => localStorage.setItem('xe-cv-store', JSON.stringify({cv, design})), { deep: true });
-
         return {
-            activeTab, cvTab, isDark, isExporting, previewScale, toasts, 
-            cv, design, palette, initials, toggleTheme, handlePhoto, addExp, exportPDF, exportPNG,
-            menu: [
-                { id: 'dashboard', label: 'Dashboard', icon: 'fa-solid fa-house' },
-                { id: 'cv-pro', label: 'CV PRO', icon: 'fa-solid fa-file-invoice' }
-            ]
-        }
-    }
-}).mount('#app');
-</script>
-
-<style>
-    .list-enter-active, .list-leave-active { transition: all 0.4s ease; }
-    .list-enter-from { opacity: 0; transform: translateX(30px); }
-    .list-leave-to { opacity: 0; transform: scale(0.5); }
-    .animate-fade-in { animation: fadeIn 0.5s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-</style>
+          activeTab, darkMode, previewScale, isExporting, showDonateModal, toasts, openSections,
+          cv, design, colorPalette, parsedSkills, parsedLanguages, initials,
+          toggleDarkMode, handlePhotoUpload, toggleSection, addExperience, addEducation,
+          confirmReset, exportJSON, importJSON, exportPDF, exportPNG
+        };
+      }
+    }).mount('#app');
+  </script>
 </body>
 </html>
