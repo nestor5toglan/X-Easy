@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-Easy | Solutions intelligentes. Opportunités globales.</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        /* --- CSS VARIABLES & THEME --- */
+        :root {
+            --bg-body: #f4f7f6;
+            --bg-panel: #ffffff;
+            --bg-sidebar: #0f172a;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --text-sidebar: #cbd5e1;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --accent: #10b981;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 12px;
+            --transition: all 0.3s ease;
+            --font: 'Inter', sans-serif;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #0f172a;
+            --bg-panel: #1e293b;
+            --bg-sidebar: #020617;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- GLOBAL RESETS --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font); background-color: var(--bg-body); color: var(--text-main); overflow-x: hidden; transition: var(--transition); }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        button, input, select, textarea { font-family: var(--font); outline: none; }
+        
+        /* --- LAYOUT --- */
+        #app { display: flex; height: 100vh; overflow: hidden; }
+        
+        /* SIDEBAR */
+        .sidebar { width: 260px; background-color: var(--bg-sidebar); color: var(--text-sidebar); display: flex; flex-direction: column; transition: var(--transition); z-index: 10; }
+        .sidebar-brand { padding: 24px; font-size: 24px; font-weight: 700; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+        .sidebar-brand i { color: var(--primary); }
+        .sidebar-nav { flex: 1; padding: 20px 0; overflow-y: auto; }
+        .nav-item { padding: 12px 24px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: var(--transition); border-left: 3px solid transparent; }
+        .nav-item:hover { background-color: rgba(255,255,255,0.05); color: #fff; }
+        .nav-item.active { background-color: rgba(37, 99, 235, 0.1); border-left-color: var(--primary); color: #fff; }
+        .sidebar-footer { padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.1); }
+        
+        /* MAIN CONTENT */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* HEADER */
+        .header { height: 70px; background-color: var(--bg-panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; transition: var(--transition); }
+        .header-title { font-size: 20px; font-weight: 600; }
+        .header-actions { display: flex; align-items: center; gap: 20px; }
+        .btn-icon { background: none; border: none; font-size: 18px; color: var(--text-muted); cursor: pointer; transition: var(--transition); }
+        .btn-icon:hover { color: var(--primary); }
+        .btn-premium { background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%); color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 10px rgba(217, 119, 6, 0.3); }
+        
+        /* CONTENT AREA */
+        .content-area { flex: 1; padding: 30px; overflow-y: auto; }
+        
+        /* --- COMPONENTS --- */
+        .card { background-color: var(--bg-panel); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); transition: var(--transition); }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        
+        /* FORMS & INPUTS */
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; color: var(--text-muted); }
+        .form-control { width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); background-color: var(--bg-body); color: var(--text-main); transition: var(--transition); }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        
+        /* BUTTONS */
+        .btn { padding: 12px 24px; border-radius: 8px; font-weight: 500; cursor: pointer; transition: var(--transition); border: none; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
+        .btn-primary { background-color: var(--primary); color: #fff; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-secondary { background-color: var(--bg-body); color: var(--text-main); border: 1px solid var(--border); }
+        
+        /* CV BUILDER SPECIFIC */
+        .cv-builder-layout { display: grid; grid-template-columns: 400px 1fr; gap: 30px; height: calc(100vh - 140px); }
+        .cv-editor { overflow-y: auto; padding-right: 10px; }
+        .cv-preview-container { background-color: #525659; border-radius: var(--radius); padding: 30px; overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; }
+        
+        /* ACTUAL CV PAPER STYLE */
+        .cv-paper { background: #fff; width: 210mm; min-height: 297mm; padding: 40mm 20mm; box-shadow: 0 10px 30px rgba(0,0,0,0.2); color: #000; position: relative; }
+        .cv-header-classic { border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+        .cv-name { font-size: 32px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; }
+        .cv-job-title { font-size: 18px; color: #555; margin-top: 5px; }
+        .cv-section-title { font-size: 16px; font-weight: 700; text-transform: uppercase; color: var(--primary); margin: 20px 0 10px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        
+        /* WEB AUDIT SPECIFIC */
+        .audit-hero { text-align: center; padding: 60px 0; }
+        .audit-search { max-width: 600px; margin: 30px auto; display: flex; gap: 10px; }
+        .score-circle { width: 120px; height: 120px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 8px solid var(--primary); margin: 0 auto; }
+        .score-val { font-size: 32px; font-weight: 700; }
+        
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .cv-builder-layout { grid-template-columns: 1fr; }
+            .sidebar { width: 80px; }
+            .sidebar-brand span, .nav-item span { display: none; }
+            .nav-item { justify-content: center; padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app" v-cloak>
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fas fa-cube"></i>
+                <span>X-Easy</span>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="nav-item" :class="{ active: currentView === 'dashboard' }" @click="currentView = 'dashboard'">
+                    <i class="fas fa-home"></i> <span>{{ t('nav_dashboard') }}</span>
+                </li>
+                <li class="nav-item" :class="{ active: currentView === 'cvpro' }" @click="currentView = 'cvpro'">
+                    <i class="fas fa-file-alt"></i> <span>CV Pro</span>
+                </li>
+                <li class="nav-item" :class="{ active: currentView === 'audit' }" @click="currentView = 'audit'">
+                    <i class="fas fa-globe"></i> <span>Web Audit Pro</span>
+                </li>
+                <li class="nav-item" :class="{ active: currentView === 'trade' }" @click="currentView = 'trade'">
+                    <i class="fas fa-ship"></i> <span>Global Trade</span>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <button class="btn btn-secondary" style="width: 100%; justify-content: center;">
+                    <i class="fas fa-cog"></i> <span class="hide-mobile">{{ t('settings') }}</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-title">{{ viewTitle }}</div>
+                <div class="header-actions">
+                    <button class="btn-premium"><i class="fas fa-crown"></i> {{ t('upgrade') }}</button>
+                    <button class="btn-icon" @click="toggleTheme"><i :class="theme === 'light' ? 'fas fa-moon' : 'fas fa-sun'"></i></button>
+                    <button class="btn-icon" @click="toggleLang"><i class="fas fa-language"></i> {{ lang.toUpperCase() }}</button>
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                        AD
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-area">
+                
+                <div v-if="currentView === 'dashboard'" class="fade-in">
+                    <h2 style="margin-bottom: 24px;">{{ t('welcome') }}</h2>
+                    <div class="grid-3">
+                        <div class="card" @click="currentView = 'cvpro'" style="cursor:pointer;">
+                            <div style="font-size: 32px; color: var(--primary); margin-bottom: 15px;"><i class="fas fa-file-pdf"></i></div>
+                            <h3>X-Easy CV Pro</h3>
+                            <p style="color: var(--text-muted); margin-top: 10px; font-size: 14px;">{{ t('desc_cv') }}</p>
+                        </div>
+                        <div class="card" @click="currentView = 'audit'" style="cursor:pointer;">
+                            <div style="font-size: 32px; color: var(--accent); margin-bottom: 15px;"><i class="fas fa-chart-line"></i></div>
+                            <h3>Web Audit Pro</h3>
+                            <p style="color: var(--text-muted); margin-top: 10px; font-size: 14px;">{{ t('desc_audit') }}</p>
+                        </div>
+                        <div class="card" @click="currentView = 'trade'" style="cursor:pointer;">
+                            <div style="font-size: 32px; color: #f59e0b; margin-bottom: 15px;"><i class="fas fa-boxes"></i></div>
+                            <h3>Global Trade</h3>
+                            <p style="color: var(--text-muted); margin-top: 10px; font-size: 14px;">{{ t('desc_trade') }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'cvpro'" class="cv-builder-layout fade-in">
+                    <div class="cv-editor">
+                        <div class="card">
+                            <h3 style="margin-bottom: 20px;"><i class="fas fa-user-edit"></i> {{ t('personal_info') }}</h3>
+                            <div class="form-group">
+                                <label>{{ t('fullname') }}</label>
+                                <input type="text" class="form-control" v-model="cv.name" placeholder="John Doe">
+                            </div>
+                            <div class="form-group">
+                                <label>{{ t('job_title') }}</label>
+                                <input type="text" class="form-control" v-model="cv.title" placeholder="Senior Frontend Developer">
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" class="form-control" v-model="cv.email" placeholder="john@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label>{{ t('summary') }}</label>
+                                <textarea class="form-control" v-model="cv.summary" rows="4"></textarea>
+                            </div>
+
+                            <h3 style="margin: 30px 0 20px;"><i class="fas fa-briefcase"></i> {{ t('experience') }}</h3>
+                            <div v-for="(exp, index) in cv.experiences" :key="index" style="border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                <input type="text" class="form-control" v-model="exp.company" placeholder="Entreprise" style="margin-bottom: 10px;">
+                                <input type="text" class="form-control" v-model="exp.role" placeholder="Rôle" style="margin-bottom: 10px;">
+                                <button class="btn btn-secondary" @click="removeExperience(index)" style="color: #ef4444; border-color: #ef4444;"><i class="fas fa-trash"></i></button>
+                            </div>
+                            <button class="btn btn-secondary" @click="addExperience" style="width: 100%; justify-content: center;"><i class="fas fa-plus"></i> {{ t('add_exp') }}</button>
+                        </div>
+                    </div>
+
+                    <div class="cv-preview-container">
+                        <div style="position: absolute; top: 120px; right: 50px; z-index: 10;">
+                            <button class="btn btn-primary" @click="downloadPDF"><i class="fas fa-download"></i> Export PDF HD</button>
+                        </div>
+                        <div class="cv-paper" id="cv-document">
+                            <div class="cv-header-classic">
+                                <div class="cv-name">{{ cv.name || 'Votre Nom' }}</div>
+                                <div class="cv-job-title">{{ cv.title || 'Titre du poste' }}</div>
+                                <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                                    {{ cv.email }} | LinkedIn | GitHub
+                                </div>
+                            </div>
+                            <div style="font-size: 14px; line-height: 1.6;">
+                                <p>{{ cv.summary }}</p>
+                            </div>
+                            <div class="cv-section-title">Expérience Professionnelle</div>
+                            <div v-for="exp in cv.experiences" :key="exp.company" style="margin-bottom: 15px;">
+                                <div style="font-weight: bold; font-size: 15px;">{{ exp.role || 'Rôle' }}</div>
+                                <div style="color: #555; font-size: 14px; margin-bottom: 5px;">{{ exp.company || 'Entreprise' }}</div>
+                                <ul style="list-style-type: disc; margin-left: 20px; font-size: 13px; color: #444;">
+                                    <li>Développement de solutions SaaS performantes.</li>
+                                    <li>Optimisation de l'architecture et du code.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'audit'" class="fade-in">
+                    <div class="card audit-hero" v-if="!auditState.analyzed">
+                        <h1 style="font-size: 32px; margin-bottom: 10px;">{{ t('audit_title') }}</h1>
+                        <p style="color: var(--text-muted);">{{ t('audit_subtitle') }}</p>
+                        
+                        <div class="audit-search">
+                            <input type="text" class="form-control" v-model="auditState.url" placeholder="https://www.entreprise.com" style="padding: 16px; font-size: 16px;">
+                            <button class="btn btn-primary" @click="runAudit" :disabled="auditState.loading" style="padding: 16px 32px; font-size: 16px;">
+                                <span v-if="!auditState.loading"><i class="fas fa-search"></i> Analyser</span>
+                                <span v-else><i class="fas fa-spinner fa-spin"></i> Audit en cours...</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div v-if="auditState.analyzed" class="fade-in">
+                        <button class="btn btn-secondary" @click="auditState.analyzed = false" style="margin-bottom: 20px;"><i class="fas fa-arrow-left"></i> Nouvelle analyse</button>
+                        <div class="grid-3">
+                            <div class="card" style="text-align: center;">
+                                <h3>Score SEO</h3>
+                                <div class="score-circle" style="margin-top: 20px; border-color: var(--accent);">
+                                    <span class="score-val" style="color: var(--accent);">{{ auditState.results.seo }}/100</span>
+                                </div>
+                            </div>
+                            <div class="card" style="text-align: center;">
+                                <h3>Performance</h3>
+                                <div class="score-circle" style="margin-top: 20px; border-color: #f59e0b;">
+                                    <span class="score-val" style="color: #f59e0b;">{{ auditState.results.perf }}/100</span>
+                                </div>
+                            </div>
+                            <div class="card" style="text-align: center;">
+                                <h3>Design & UX</h3>
+                                <div class="score-circle" style="margin-top: 20px; border-color: var(--primary);">
+                                    <span class="score-val" style="color: var(--primary);">{{ auditState.results.ui }}/100</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card" style="margin-top: 24px;">
+                            <h3 style="margin-bottom: 15px;"><i class="fas fa-briefcase"></i> Opportunités Business (Lead Generation)</h3>
+                            <div style="background-color: rgba(16, 185, 129, 0.1); border: 1px solid var(--accent); padding: 15px; border-radius: var(--radius); color: var(--accent);">
+                                <strong>Recommandation IA :</strong> Ce site manque de balises meta essentielles et n'est pas optimisé mobile. C'est une opportunité de prospection B2B. 
+                                <br><br>
+                                <button class="btn btn-primary"><i class="fas fa-envelope"></i> Générer Email de Prospection</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'trade'" class="fade-in">
+                    <div class="header-actions" style="margin-bottom: 24px;">
+                        <input type="text" class="form-control" placeholder="Rechercher fournisseurs, machines, produits..." style="max-width: 400px;">
+                        <button class="btn btn-primary"><i class="fas fa-filter"></i> Filtres</button>
+                    </div>
+
+                    <div class="grid-3">
+                        <div class="card" v-for="product in tradeProducts" :key="product.id">
+                            <div style="height: 150px; background-color: var(--border); border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: var(--text-muted);">
+                                <i :class="product.icon"></i>
+                            </div>
+                            <h4 style="font-size: 16px; margin-bottom: 5px;">{{ product.name }}</h4>
+                            <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 15px;">Origine: {{ product.origin }}</p>
+                            
+                            <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 15px;">
+                                <div><strong style="display:block;">Prix estimé</strong> {{ product.price }}</div>
+                                <div style="text-align: right;"><strong style="display:block;">MOQ</strong> {{ product.moq }}</div>
+                            </div>
+                            
+                            <button class="btn btn-secondary" style="width: 100%; justify-content: center; color: var(--primary); border-color: var(--primary);">
+                                <i class="fas fa-calculator"></i> Estimer Rentabilité
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const { createApp, ref, reactive, computed, watch, onMounted } = Vue;
+
+        // --- i18n Dictionnary ---
+        const translations = {
+            fr: {
+                nav_dashboard: "Tableau de bord",
+                settings: "Paramètres",
+                upgrade: "Passer Premium",
+                welcome: "Bienvenue sur X-Easy",
+                desc_cv: "Générateur de CV international et optimisation ATS.",
+                desc_audit: "Analyse web, prospection B2B et génération de rapports.",
+                desc_trade: "Sourcing international, import et idées business.",
+                personal_info: "Informations Personnelles",
+                fullname: "Nom Complet",
+                job_title: "Titre du poste",
+                summary: "Profil / Résumé",
+                experience: "Expérience Professionnelle",
+                add_exp: "Ajouter une expérience",
+                audit_title: "Audit de Site Web B2B",
+                audit_subtitle: "Analysez n'importe quel site web pour identifier des failles et générer des leads."
+            },
+            en: {
+                nav_dashboard: "Dashboard",
+                settings: "Settings",
+                upgrade: "Upgrade Premium",
+                welcome: "Welcome to X-Easy",
+                desc_cv: "International Resume Builder & ATS optimization.",
+                desc_audit: "Web analysis, B2B prospecting & report generation.",
+                desc_trade: "International sourcing, import & business ideas.",
+                personal_info: "Personal Information",
+                fullname: "Full Name",
+                job_title: "Job Title",
+                summary: "Profile / Summary",
+                experience: "Professional Experience",
+                add_exp: "Add Experience",
+                audit_title: "B2B Website Audit",
+                audit_subtitle: "Analyze any website to identify flaws and generate leads."
+            }
+        };
+
+        const app = createApp({
+            setup() {
+                // State
+                const currentView = ref('dashboard');
+                const theme = ref(localStorage.getItem('xeasy_theme') || 'light');
+                const lang = ref(localStorage.getItem('xeasy_lang') || 'fr');
+
+                // View Titles
+                const viewTitle = computed(() => {
+                    const titles = {
+                        dashboard: "Dashboard",
+                        cvpro: "X-Easy CV Pro",
+                        audit: "Web Audit Pro",
+                        trade: "Global Trade / Sourcing"
+                    };
+                    return titles[currentView.value];
+                });
+
+                // i18n Helper
+                const t = (key) => translations[lang.value][key] || key;
+
+                const toggleTheme = () => {
+                    theme.value = theme.value === 'light' ? 'dark' : 'light';
+                    document.documentElement.setAttribute('data-theme', theme.value);
+                    localStorage.setItem('xeasy_theme', theme.value);
+                };
+
+                const toggleLang = () => {
+                    lang.value = lang.value === 'fr' ? 'en' : 'fr';
+                    localStorage.setItem('xeasy_lang', lang.value);
+                };
+
+                // --- CV PRO Logic ---
+                const savedCv = JSON.parse(localStorage.getItem('xeasy_cv')) || {
+                    name: '', title: '', email: '', summary: '',
+                    experiences: [{ company: '', role: '' }]
+                };
+                const cv = reactive(savedCv);
+
+                watch(cv, (newVal) => {
+                    localStorage.setItem('xeasy_cv', JSON.stringify(newVal));
+                }, { deep: true });
+
+                const addExperience = () => cv.experiences.push({ company: '', role: '' });
+                const removeExperience = (idx) => cv.experiences.splice(idx, 1);
+
+                const downloadPDF = async () => {
+                    const element = document.getElementById('cv-document');
+                    const canvas = await html2canvas(element, { scale: 2 });
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                    const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                    pdf.save(`CV_${cv.name || 'X-Easy'}.pdf`);
+                };
+
+                // --- WEB AUDIT Logic ---
+                const auditState = reactive({
+                    url: '',
+                    loading: false,
+                    analyzed: false,
+                    results: { seo: 0, perf: 0, ui: 0 }
+                });
+
+                const runAudit = () => {
+                    if(!auditState.url) return;
+                    auditState.loading = true;
+                    // Mocking API / Analysis delay
+                    setTimeout(() => {
+                        auditState.results.seo = Math.floor(Math.random() * 40) + 50; // Score 50-90
+                        auditState.results.perf = Math.floor(Math.random() * 50) + 40; 
+                        auditState.results.ui = Math.floor(Math.random() * 30) + 70;
+                        auditState.loading = false;
+                        auditState.analyzed = true;
+                    }, 2500);
+                };
+
+                // --- GLOBAL TRADE Logic ---
+                const tradeProducts = ref([
+                    { id: 1, name: 'Machine d\'emballage Auto', origin: 'Shenzhen, Chine', price: '2,500$', moq: '1 unité', icon: 'fas fa-cogs' },
+                    { id: 2, name: 'Smartwatch OEM Premium', origin: 'Guangzhou, Chine', price: '12.50$', moq: '500 unités', icon: 'fas fa-clock' },
+                    { id: 3, name: 'Panneaux Solaires 500W', origin: 'Zhejiang, Chine', price: '45.00$', moq: '50 unités', icon: 'fas fa-solar-panel' }
+                ]);
+
+                // Initialization
+                onMounted(() => {
+                    document.documentElement.setAttribute('data-theme', theme.value);
+                });
+
+                return {
+                    currentView, theme, lang, viewTitle, t, toggleTheme, toggleLang,
+                    cv, addExperience, removeExperience, downloadPDF,
+                    auditState, runAudit, tradeProducts
+                };
+            }
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+</html>
